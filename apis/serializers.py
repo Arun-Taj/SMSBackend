@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import AdminUser
+from .models import AdminUser, School
 from PIL import Image
 
 
@@ -11,7 +11,7 @@ class AdminUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AdminUser
-        fields = ['username', 'full_name', 'password','gender', 'dob','photo', 'aadhar_no', 'address', 'town_village_city', 'district', 'state', 'country', 'pincode', 'nationality', 'religion', 'passport_photo']
+        fields = ['id', 'url','username', 'full_name', 'password','gender', 'dob','photo', 'aadhar_no', 'address', 'town_village_city', 'district', 'state', 'country', 'pincode', 'nationality', 'religion', 'passport_photo']
 
     def create(self, validated_data):
         # Create a new user and set the password securely
@@ -74,3 +74,11 @@ class UpdateAdminUserSerializer(AdminUserSerializer):
     password = serializers.CharField(write_only=True, required=False)  # Only for writing, not reading
     username = serializers.CharField(write_only=True, required=False)  # Only for writing, not reading
 
+
+
+
+class SchoolSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = School
+        fields = '__all__'

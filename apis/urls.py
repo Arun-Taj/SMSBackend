@@ -10,6 +10,7 @@ from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 
 router.register(r'adminuser', views.AdminUserViewSet)
+router.register(r'school', views.SchoolViewSet)
 
 
 urlpatterns = [
@@ -18,7 +19,6 @@ urlpatterns = [
 
 
 
-    path('welcome/', views.WelcomeView.as_view(), name='welcome'),
 
 ]
 

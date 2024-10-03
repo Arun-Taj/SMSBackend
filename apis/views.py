@@ -46,8 +46,9 @@ class AdminUserViewSet(viewsets.ModelViewSet):
         )
 
 
-class WelcomeView(APIView):
-    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        return Response({"message": "Welcome to the protected API!"})
+
+class SchoolViewSet(viewsets.ModelViewSet):
+    queryset = models.School.objects.all()
+    serializer_class = serializers.SchoolSerializer
+    parser_classes = [MultiPartParser, FormParser]

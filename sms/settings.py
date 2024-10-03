@@ -28,9 +28,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'corsheaders',
     'apis',
     'drf_yasg',
+
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True  #remeber to change this to specific origin during production
+
 
 INSTALLED_APPS += ['rest_framework_simplejwt.token_blacklist']
 
@@ -65,6 +70,7 @@ REST_FRAMEWORK = {
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Add this line
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -144,13 +150,15 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = 'static/'
 
+
 MEDIA_URL = 'media/'
 MEDIA_ROOT = 'media/'
+
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB max file size
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB max file size

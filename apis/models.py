@@ -31,6 +31,7 @@ class AdminUserManager(BaseUserManager):
 
 class AdminUser(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=150, unique=True)
+    email = models.EmailField(blank=True, null=True)
     full_name = models.CharField(max_length=150, blank=True, null=True)
     gender = models.CharField(max_length=10, blank=True)
     dob = models.DateField(blank=True, null=True)
@@ -62,3 +63,28 @@ class AdminUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
+
+
+
+
+class School(models.Model):
+    admin = models.ForeignKey(AdminUser, on_delete=models.CASCADE, null=True)
+    photo = models.ImageField(upload_to='images/schools/', blank=True, null=True)
+    tag_line = models.CharField(max_length=150, blank=True, null=True)
+    school_board = models.CharField(max_length=150, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    town_village_city = models.TextField(blank=True, null=True)
+    district = models.TextField(blank=True, null=True)
+    state = models.TextField(blank=True, null=True)
+    country = models.TextField(blank=True, null=True)
+    pincode = models.CharField(max_length=50, blank=True)
+
+
+    def __str__(self) -> str:
+        return self.admin.username + " - " + self.tag_line
+    
+
+
+
+
+    

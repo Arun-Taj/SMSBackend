@@ -13,7 +13,7 @@ schema_view = get_schema_view(
     openapi.Info(
         title="School Management System API",
         default_version='v1',
-        description="API documentation for your project",
+        description="API documentation for this project",
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(email="contact@yourapi.local"),
         license=openapi.License(name="BSD License"),

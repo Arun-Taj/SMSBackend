@@ -14,7 +14,7 @@ router.register(r'school', views.SchoolViewSet)
 
 
 urlpatterns = [
-    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # login
+    path('login/', views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),  # login
     path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),       # refresh token
 
 

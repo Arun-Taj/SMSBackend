@@ -1,8 +1,24 @@
 from rest_framework import serializers
 from .models import AdminUser, School
 from PIL import Image
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        # Add custom user data
+        data['user'] = {
+            'id': self.user.id,
+            'username': self.user.username,
+            # 'email': self.user.email,
+            # Add any other fields you want
+        }
+
+        return data
 
 class AdminUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)  # Only for writing, not reading

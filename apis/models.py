@@ -46,7 +46,8 @@ class AdminUser(AbstractBaseUser, PermissionsMixin):
     nationality = models.CharField(max_length=50, blank=True, null=True)
     religion = models.CharField(max_length=50, blank=True, null=True)
     passport_photo = models.ImageField(upload_to='images/passport_photos/', blank=True, null=True)
-    
+    phone_number = models.CharField(max_length=50, blank=True, null=True)
+    alt_phone_number = models.CharField(max_length=50, blank=True, null=True)
     
     
     

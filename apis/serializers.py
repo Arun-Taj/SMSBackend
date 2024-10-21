@@ -47,6 +47,8 @@ class AdminUserSerializer(serializers.ModelSerializer):
             nationality=validated_data.get('nationality', ''),
             religion=validated_data.get('religion', ''),
             passport_photo=validated_data.get('passport_photo', ''),
+            phone_number=validated_data.get('phone_number', ''),
+            alt_phone_number=validated_data.get('alt_phone_number', ''),
         )
         user.set_password(validated_data['password'])  # Set the password securely
         user.save()

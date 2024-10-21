@@ -56,3 +56,14 @@ class SchoolViewSet(viewsets.ModelViewSet):
     queryset = models.School.objects.all()
     serializer_class = serializers.SchoolSerializer
     parser_classes = [MultiPartParser, FormParser]
+
+
+    def get_permissions(self):
+        """
+        Overrides permissions for specific actions. The create method allows
+        anyone to access it, while other methods require authentication.
+        """
+        if self.action == 'create':
+            # Allow anyone to create
+            return [AllowAny()]
+        return [IsAuthenticated()]  # Restrict other actions to authenticated users

@@ -69,6 +69,7 @@ class AdminUser(AbstractBaseUser, PermissionsMixin):
 
 
 class School(models.Model):
+    school_name = models.CharField(max_length=150, null=True, blank=True)
     admin = models.ForeignKey(AdminUser, on_delete=models.CASCADE, null=True)
     photo = models.ImageField(upload_to='images/schools/', blank=True, null=True)
     tag_line = models.CharField(max_length=150, blank=True, null=True)

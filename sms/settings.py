@@ -34,7 +34,7 @@ INSTALLED_APPS = [
 
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True  #remeber to change this to specific origin during production
+# CORS_ALLOW_ALL_ORIGINS = True  #remeber to change this to specific origin during production
 
 
 INSTALLED_APPS += ['rest_framework_simplejwt.token_blacklist']
@@ -44,6 +44,16 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Frontend URL
+]
+
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'Authorization',
+    'Content-Type',
+]
 # settings.py
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {

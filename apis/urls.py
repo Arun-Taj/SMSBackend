@@ -11,6 +11,7 @@ router = DefaultRouter()
 
 router.register(r'adminuser', views.AdminUserViewSet)
 router.register(r'school', views.SchoolViewSet)
+router.register(r'student', views.StudentViewSet)
 
 
 urlpatterns = [

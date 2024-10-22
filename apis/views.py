@@ -67,3 +67,13 @@ class SchoolViewSet(viewsets.ModelViewSet):
             # Allow anyone to create
             return [AllowAny()]
         return [IsAuthenticated()]  # Restrict other actions to authenticated users
+    
+
+
+
+
+
+class StudentViewSet(viewsets.ModelViewSet):
+    queryset = models.Student.objects.all()
+    serializer_class = serializers.StudentSerializer
+    parser_classes = [MultiPartParser, FormParser]

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import AdminUser, School
+from .models import *
 from PIL import Image
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -99,4 +99,15 @@ class SchoolSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = School
+        fields = '__all__'
+
+
+
+
+
+
+
+class StudentSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Student
         fields = '__all__'

@@ -17,7 +17,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             # 'email': self.user.email,
             # Add any other fields you want
         }
-
+        # Remove the refresh token from the response data
+        data.pop('refresh', None)
         return data
 
 class AdminUserSerializer(serializers.ModelSerializer):

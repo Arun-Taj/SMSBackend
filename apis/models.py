@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
+import uuid
+
 
 class AdminUserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -69,8 +71,8 @@ class AdminUser(AbstractBaseUser, PermissionsMixin):
 
 
 class School(models.Model):
+    admin = models.OneToOneField(AdminUser, on_delete=models.CASCADE, null=True, related_name='school')
     school_name = models.CharField(max_length=150, null=True, blank=True)
-    admin = models.ForeignKey(AdminUser, on_delete=models.CASCADE, null=True)
     photo = models.ImageField(upload_to='images/schools/', blank=True, null=True)
     tag_line = models.CharField(max_length=150, blank=True, null=True)
     school_board = models.CharField(max_length=150, blank=True, null=True)
@@ -89,6 +91,7 @@ class School(models.Model):
 
 
 class Student(models.Model):
+    school = models.ForeignKey(School, on_delete=models.CASCADE, null=True)
     aadharNumber = models.CharField(max_length=15, null=True, blank=True)
     alternatePhoneNumber = models.CharField(max_length=10, null=True, blank=True)
     bloodGroup = models.CharField(max_length=10, null=True, blank=True)
@@ -140,7 +143,16 @@ class Student(models.Model):
     studentLastName = models.CharField(max_length=50, null=True, blank=True)
     studentMiddleName = models.CharField(max_length=50, null=True, blank=True)
     transferCertificate = models.CharField(max_length=50, null=True, blank=True)
+    enrollmentId = models.CharField(max_length=20, unique=True, editable=False)
 
+    def save(self, *args, **kwargs):
+
+
+        if not self.enrollmentId:
+            # Generate a unique enrollmentId based on UUID
+            self.enrollmentId = f'ENR-{uuid.uuid4().hex[:10].upper()}'
+        
+        super(Student, self).save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"{self.studentFirstName} {self.studentMiddleName} {self.studentLastName}"

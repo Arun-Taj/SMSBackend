@@ -5,6 +5,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenBlacklistView
 
 
 router = DefaultRouter()
@@ -17,16 +18,8 @@ router.register(r'student', views.StudentViewSet)
 urlpatterns = [
     path('login/', views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),  # login
     path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),       # refresh token
-
-
-
+    # path('logout/', TokenBlacklistView.as_view(), name='token_blacklist'),
+    path('logout/', views.CustomTokenBlacklistView.as_view(), name='token_blacklist'),
 
 ]
-
-from rest_framework_simplejwt.views import TokenBlacklistView
-
-urlpatterns += [
-    path('logout/', TokenBlacklistView.as_view(), name='token_blacklist'),
-]
-
 urlpatterns+=router.urls

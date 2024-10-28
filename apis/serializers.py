@@ -108,6 +108,35 @@ class SchoolSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class StudentSerializer(serializers.HyperlinkedModelSerializer):
+    # rollNo = serializers.IntegerField(read_only=True)  # Add rollNo as a read-only field
+    id = serializers.IntegerField(read_only=True)
+
+
+
     class Meta:
         model = Student
         fields = '__all__'
+
+
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # representation['rollNo'] = self.context.get('rollNo', None)  # Use context if needed
+        representation['id'] = instance.id  # or representation['id'] = instance.pk for primary key
+        return representation
+
+
+    def save(self, *args, **kwargs):
+        request = self.context.get("request")  # Get request from context
+        if request:
+            # If this is a new instance, set the school
+            if self.instance is None:
+                self.validated_data['school'] = request.user.school
+            else:
+                # Only set the school if the instance already exists
+                if not self.instance.school:
+                    self.instance.school = request.user.school
+        super().save(*args, **kwargs)
+
+
+    

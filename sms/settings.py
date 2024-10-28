@@ -31,22 +31,30 @@ INSTALLED_APPS = [
     'corsheaders',
     'apis',
     'drf_yasg',
+    'rest_framework_simplejwt.token_blacklist'
+
 
 ]
 
 # CORS_ALLOW_ALL_ORIGINS = True  #remeber to change this to specific origin during production
 
 
-INSTALLED_APPS += ['rest_framework_simplejwt.token_blacklist']
 
-SIMPLE_JWT = {
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
-}
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Frontend URL
 ]
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_BLACKLIST_ENABLED': True,
+}
 
 from corsheaders.defaults import default_headers
 

@@ -139,4 +139,28 @@ class StudentSerializer(serializers.HyperlinkedModelSerializer):
         super().save(*args, **kwargs)
 
 
-    
+
+
+
+
+
+class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
+    school = serializers.PrimaryKeyRelatedField(read_only=True)
+    id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Employee
+        fields = '__all__'
+
+
+    def create(self, validated_data):
+        # Assign the authenticated user's school to the employee on creation
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            validated_data['school'] = request.user.school
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # Avoid overwriting the school field on updates
+        validated_data.pop('school', None)
+        return super().update(instance, validated_data)

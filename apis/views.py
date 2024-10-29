@@ -10,37 +10,54 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenBlacklistView
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 
 
 
+# class CustomTokenBlacklistView(APIView):
+#     def post(self, request, *args, **kwargs):
+#         refresh_token = request.data.get('refresh')
+#         print("refresh",refresh_token)
+
+#         if not refresh_token:
+#             return JsonResponse({'detail': 'Refresh token is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         try:
+#             # Check if the token is in outstanding tokens
+#             outstanding_token = OutstandingToken.objects.get(token=refresh_token)
+#             print("outstanding",outstanding_token)
+
+
+
+#             # Check if it's already blacklisted
+#             if not BlacklistedToken.objects.filter(token=outstanding_token).exists():
+#                 # Create a new blacklist entry
+#                 BlacklistedToken.objects.create(token=outstanding_token)
+#                 return JsonResponse({'detail': 'Token blacklisted successfully.'}, status=status.HTTP_205_RESET_CONTENT)
+#             else:
+#                 return JsonResponse({'detail': 'Token is already blacklisted.'}, status=status.HTTP_200_OK)
+
+#         except OutstandingToken.DoesNotExist:
+#             return JsonResponse({'detail': 'Outstanding token does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         except Exception as e:
+#             return JsonResponse({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 class CustomTokenBlacklistView(APIView):
     def post(self, request, *args, **kwargs):
         refresh_token = request.data.get('refresh')
-
         if not refresh_token:
             return JsonResponse({'detail': 'Refresh token is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Check if the token is in outstanding tokens
-            outstanding_token = OutstandingToken.objects.get(token=refresh_token)
-
-
-            # Check if it's already blacklisted
-            if not BlacklistedToken.objects.filter(token=outstanding_token).exists():
-                # Create a new blacklist entry
-                BlacklistedToken.objects.create(token=outstanding_token)
-                return JsonResponse({'detail': 'Token blacklisted successfully.'}, status=status.HTTP_205_RESET_CONTENT)
-            else:
-                return JsonResponse({'detail': 'Token is already blacklisted.'}, status=status.HTTP_200_OK)
-
-        except OutstandingToken.DoesNotExist:
-            return JsonResponse({'detail': 'Outstanding token does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
-
+            token = RefreshToken(refresh_token)
+            # Blacklist the refresh token
+            token.blacklist()
+            print("tried to blacklist")
+            return JsonResponse({'detail': 'Token blacklisted successfully.'}, status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return JsonResponse({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = serializers.CustomTokenObtainPairSerializer
@@ -113,17 +130,28 @@ class StudentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return super().get_queryset().filter(school=self.request.user.school).order_by('studentFirstName')
     
-    # def list(self, request, *args, **kwargs):
-    #     queryset = self.get_queryset()
-    #     student_data = []
 
-    #     # Serialize each student instance
-    #     for index, student in enumerate(queryset, start=1):
-    #         # Serialize the student instance
-    #         serializer = self.get_serializer(student)
-    #         # Create a dictionary and add rollNo
-    #         student_dict = serializer.data
-    #         student_dict['rollNo'] = index  # Set rollNo serially
-    #         student_data.append(student_dict)
 
-    #     return Response(student_data)
+
+
+class EmployeeViewSet(viewsets.ModelViewSet):
+    queryset = models.Employee.objects.all()
+    serializer_class = serializers.EmployeeSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return super().get_queryset().filter(school=self.request.user.school).order_by('employeeFirstName')
+        else:
+            raise PermissionError('User is not authenticated')
+    
+
+    def create(self, request, *args, **kwargs):
+        # print("creating, viewset")
+        # Manually handle creation to catch validation errors
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            print(serializer.errors)  # Log validation errors
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return super().create(request, *args, **kwargs)

@@ -156,3 +156,61 @@ class Student(models.Model):
 
     def __str__(self) -> str:
         return f"{self.studentFirstName} {self.studentMiddleName} {self.studentLastName}"
+
+
+
+class Employee(models.Model):
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='employees')
+    employeeFirstName = models.CharField(max_length=50, null=True, blank=True)
+    employeeMiddleName = models.CharField(max_length=50, null=True, blank=True)
+    employeeLastName = models.CharField(max_length=50, null=True, blank=True)
+    gender = models.CharField(max_length=10, null=True, blank=True)
+    dateOfBirth = models.DateField(null=True, blank=True)
+    photoUpload = models.ImageField(upload_to='images/employees/', blank=True, null=True)
+    aadharNumber = models.CharField(max_length=15, null=True, blank=True)
+    phoneNumber = models.CharField(max_length=10, null=True, blank=True)
+    alternatePhoneNumber = models.CharField(max_length=10, null=True, blank=True)
+    email = models.CharField(max_length=50, null=True, blank=True)
+    selectRole = models.CharField(max_length=50, null=True, blank=True)
+    fatherFirstName = models.CharField(max_length=50, null=True, blank=True)
+    fatherMiddleName = models.CharField(max_length=50, null=True, blank=True)
+    fatherLastName = models.CharField(max_length=50, null=True, blank=True)
+    husbandFirstName = models.CharField(max_length=50, null=True, blank=True)
+    husbandMiddleName = models.CharField(max_length=50, null=True, blank=True)
+    husbandLastName = models.CharField(max_length=50, null=True, blank=True)
+    address1 = models.CharField(max_length=50, null=True, blank=True)
+    townVillageCity = models.CharField(max_length=50, null=True, blank=True)
+    district = models.CharField(max_length=50, null=True, blank=True)
+    state = models.CharField(max_length=50, null=True, blank=True)
+    country = models.CharField(max_length=50, null=True, blank=True)
+    zipCode = models.CharField(max_length=50, null=True, blank=True)
+    currentAddress1 = models.CharField(max_length=50, null=True, blank=True)
+    currentTownVillageCity = models.CharField(max_length=50, null=True, blank=True)
+    currentDistrict = models.CharField(max_length=50, null=True, blank=True)
+    currentState = models.CharField(max_length=50, null=True, blank=True)
+    currentCountry = models.CharField(max_length=50, null=True, blank=True)
+    currentZipCode = models.CharField(max_length=50, null=True, blank=True)
+    sameAsPermanentAddress = models.BooleanField(default=False)
+    dateOfJoining = models.DateField(null=True, blank=True)
+    nationality = models.CharField(max_length=50, null=True, blank=True)
+    religion = models.CharField(max_length=50, null=True, blank=True)
+    caste = models.CharField(max_length=50, null=True, blank=True)
+    bloodGroup = models.CharField(max_length=50, null=True, blank=True)
+    bioData = models.FileField(upload_to='documents/employees/', blank=True, null=True)
+    educationDetails = models.TextField(null=True, blank=True)
+    experience = models.TextField(null=True, blank=True)
+    mainSubject = models.CharField(max_length=50, null=True, blank=True)
+    complementarySubject = models.CharField(max_length=50, null=True, blank=True)
+    remarks = models.TextField(null=True, blank=True)
+    employeeId = models.CharField(max_length=20, unique=True, editable=False)
+
+
+    def save(self, *args, **kwargs):
+        if not self.employeeId:
+            # Generate a unique employeeId based on UUID
+            self.employeeId = f'EMP-{uuid.uuid4().hex[:10].upper()}'
+        
+        super(Employee, self).save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"{self.employeeFirstName} {self.employeeMiddleName} {self.employeeLastName}"

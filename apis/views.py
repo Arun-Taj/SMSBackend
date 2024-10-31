@@ -155,3 +155,22 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             print(serializer.errors)  # Log validation errors
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return super().create(request, *args, **kwargs)
+
+
+
+class ClassViewSet(viewsets.ModelViewSet):
+    queryset = models.Class.objects.all()
+    serializer_class = serializers.ClassSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return super().get_queryset().filter(school=self.request.user.school).prefetch_related('class_teacher')
+        else:
+            raise PermissionError('User is not authenticated')
+        
+
+
+
+

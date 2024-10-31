@@ -164,3 +164,22 @@ class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
         # Avoid overwriting the school field on updates
         validated_data.pop('school', None)
         return super().update(instance, validated_data)
+    
+
+
+
+
+
+
+class ClassSerializer(serializers.ModelSerializer):
+    school = serializers.PrimaryKeyRelatedField(read_only=True)
+    class_teacher_fullname = serializers.CharField(source='class_teacher.full_name', read_only=True)
+
+    class Meta:
+        model = Class
+        fields = '__all__'
+
+
+    def create(self, validated_data):
+        validated_data['school'] = self.context['request'].user.school  
+        return super().create(validated_data)

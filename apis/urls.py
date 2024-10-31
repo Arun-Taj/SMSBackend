@@ -14,6 +14,7 @@ router.register(r'adminuser', AdminUserViewSet)
 router.register(r'school', SchoolViewSet)
 router.register(r'student', StudentViewSet)
 router.register(r'employee', EmployeeViewSet)
+router.register(r'class', ClassViewSet)
 
 
 urlpatterns = [

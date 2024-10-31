@@ -214,3 +214,25 @@ class Employee(models.Model):
 
     def __str__(self) -> str:
         return f"{self.employeeFirstName} {self.employeeMiddleName} {self.employeeLastName}"
+    
+
+    @property
+    def full_name(self):
+        return f"{self.employeeFirstName} {self.employeeMiddleName} {self.employeeLastName}"
+    
+
+
+
+class Class(models.Model):
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='classes')
+    className = models.CharField(max_length=50, null=True, blank=True)
+    class_teacher = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, related_name='classes')
+    monthlyFees = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('school', 'className')
+        verbose_name_plural = 'Classes'
+
+
+    def __str__(self) -> str:
+        return f"{self.className}- {self.school}"

@@ -236,3 +236,41 @@ class Class(models.Model):
 
     def __str__(self) -> str:
         return f"{self.className}- {self.school}"
+
+
+
+
+
+
+
+
+
+class Subject(models.Model):
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='subjects')
+    subjectName = models.CharField(max_length=50, null=True, blank=True)
+   
+    class Meta:
+        unique_together = ('school', 'subjectName')
+
+
+    def __str__(self) -> str:
+        return f"{self.subjectName}-> {self.school}"
+    
+
+
+
+
+class ClassSubject(models.Model):
+    class_name = models.ForeignKey(Class, on_delete=models.CASCADE, related_name='class_subjects')
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='class_subjects')
+    subject_teacher = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, related_name='class_subjects')
+
+
+    class Meta:
+        unique_together = ('class_name', 'subject')
+
+
+    def __str__(self) -> str:
+        return f"{self.class_name.className} -> {self.subject}"
+
+

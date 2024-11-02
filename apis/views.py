@@ -11,6 +11,10 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenBlacklistView
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.decorators import api_view
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from django.db.models import F
 
 
 
@@ -171,6 +175,128 @@ class ClassViewSet(viewsets.ModelViewSet):
             raise PermissionError('User is not authenticated')
         
 
+
+
+
+class SubjectViewSet(viewsets.ModelViewSet):
+    queryset = models.Subject.objects.all()
+    serializer_class = serializers.SubjectSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return super().get_queryset().filter(school=self.request.user.school)
+        else:
+            raise PermissionError('User is not authenticated')
+
+
+
+
+
+class ClassSubjectViewSet(viewsets.ModelViewSet):
+    queryset = models.ClassSubject.objects.all()
+    serializer_class = serializers.ClassSubjectSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return (
+                super()
+                .get_queryset()
+                .filter(subject__school=self.request.user.school)
+                .select_related('subject_teacher')
+                .prefetch_related('subject', 'class_name')
+            )
+    
+        else:
+            raise PermissionError("User is not authenticated")
+        
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        
+        # Grouping data by class name
+        grouped_data = {}
+        for item in serializer.data:
+            class_name = item['class_name']['className']
+            subject_name = item['subject']['subjectName']
+            teacher_name = f"{item['subject_teacher']['employeeFirstName']} {item['subject_teacher']['employeeLastName']}"
+            
+            if class_name not in grouped_data:
+                grouped_data[class_name] = {
+                    "className": class_name,
+                    "subjects": []
+                }
+            
+            grouped_data[class_name]["subjects"].append({
+                "subject": subject_name,
+                "teacher": teacher_name
+            })
+
+        # Convert the grouped data to a list
+        formatted_response = list(grouped_data.values())
+
+        return Response(formatted_response)
+
+
+
+
+@api_view(['GET'])
+def get_assigned_subject_classes(request):
+    class_subjects = models.ClassSubject.objects.filter(
+        subject__school=request.user.school
+    ).all()
+    serializer = serializers.GETClassSubjectSerializer(class_subjects, many=True,  context={'request': request})
+    # Grouping data by class name
+    grouped_data = {}
+    for item in serializer.data:
+        class_name = item['class_name']['className']
+        subject_name = item['subject']['subjectName']
+        teacher_name = f"{item['subject_teacher']['employeeFirstName']} {item['subject_teacher']['employeeLastName']}"
+        
+        if class_name not in grouped_data:
+            grouped_data[class_name] = {
+                "className": class_name,
+                "subjects": []
+            }
+        
+        grouped_data[class_name]["subjects"].append({
+            "subject": subject_name,
+            "teacher": teacher_name
+        })
+
+    # Convert the grouped data to a list
+    formatted_response = list(grouped_data.values())
+
+    return Response(formatted_response)
+
+
+@api_view(['GET'])
+def get_classes(request):
+    classes = models.Class.objects.values('id', 'className')
+    return Response(classes)
+
+
+
+
+@api_view(['GET'])
+def get_subjects(request, class_id):
+    # subjects = models.ClassSubject.objects.filter(class_name__school=request.user.school).filter(class_name=class_id).values('id', 'subject__subjectName')
+    subjects = models.Subject.objects.filter(
+    class_name__school=request.user.school
+    ).values('id', 'subjectName')  # Use the alias instead
+    return Response(subjects)
+
+
+
+
+@api_view(['GET'])
+def get_teachers(request):
+    teachers = models.Employee.objects.filter(school=request.user.school)
+    serializer = serializers.SimpleEmployeeSerializer(teachers, many=True)
+    return Response(serializer.data)
 
 
 

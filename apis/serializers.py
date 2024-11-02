@@ -183,3 +183,56 @@ class ClassSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['school'] = self.context['request'].user.school  
         return super().create(validated_data)
+
+
+
+
+
+
+class SubjectSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+    school = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = Subject
+        fields = '__all__'
+
+
+
+    def create(self, validated_data):
+        validated_data['school'] = self.context['request'].user.school  
+        return super().create(validated_data)
+
+
+
+
+
+class ClassSubjectSerializer(serializers.ModelSerializer):
+
+
+    class Meta:
+        model = ClassSubject
+        fields = '__all__'
+
+
+
+class GETClassSubjectSerializer(serializers.ModelSerializer):
+    class_name = ClassSerializer()  # Use nested serializer for class_name
+    subject = SubjectSerializer()  # Use nested serializer for subject
+    subject_teacher = EmployeeSerializer()  # Use nested serializer for subject_teacher
+
+    class Meta:
+        model = ClassSubject
+        fields = ['id', 'class_name', 'subject', 'subject_teacher']  # 
+
+
+
+
+
+class SimpleEmployeeSerializer(serializers.ModelSerializer):
+    full_name = serializers.ReadOnlyField()
+    class Meta:
+        model = Employee
+        fields = ['id', 'full_name']
+
+

@@ -43,6 +43,8 @@ INSTALLED_APPS = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Frontend URL
+    #allow all origins
+    "*"
 ]
 
 from datetime import timedelta

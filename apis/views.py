@@ -213,32 +213,32 @@ class ClassSubjectViewSet(viewsets.ModelViewSet):
             raise PermissionError("User is not authenticated")
         
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
+    # def list(self, request, *args, **kwargs):
+    #     queryset = self.get_queryset()
+    #     serializer = self.get_serializer(queryset, many=True)
         
-        # Grouping data by class name
-        grouped_data = {}
-        for item in serializer.data:
-            class_name = item['class_name']['className']
-            subject_name = item['subject']['subjectName']
-            teacher_name = f"{item['subject_teacher']['employeeFirstName']} {item['subject_teacher']['employeeLastName']}"
+    #     # Grouping data by class name
+    #     grouped_data = {}
+    #     for item in serializer.data:
+    #         class_name = item['class_name']['className']
+    #         subject_name = item['subject']['subjectName']
+    #         teacher_name = f"{item['subject_teacher']['employeeFirstName']} {item['subject_teacher']['employeeLastName']}"
             
-            if class_name not in grouped_data:
-                grouped_data[class_name] = {
-                    "className": class_name,
-                    "subjects": []
-                }
+    #         if class_name not in grouped_data:
+    #             grouped_data[class_name] = {
+    #                 "className": class_name,
+    #                 "subjects": []
+    #             }
             
-            grouped_data[class_name]["subjects"].append({
-                "subject": subject_name,
-                "teacher": teacher_name
-            })
+    #         grouped_data[class_name]["subjects"].append({
+    #             "subject": subject_name,
+    #             "teacher": teacher_name
+    #         })
 
-        # Convert the grouped data to a list
-        formatted_response = list(grouped_data.values())
+    #     # Convert the grouped data to a list
+    #     formatted_response = list(grouped_data.values())
 
-        return Response(formatted_response)
+    #     return Response(formatted_response)
 
 
 

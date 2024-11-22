@@ -30,5 +30,13 @@ urlpatterns = [
     path('get_subjects/<int:class_id>/', get_subjects, name='get_subjects'),
     path('get_teachers/', get_teachers, name='get_teachers'),
     path('get_assigned_subject_classes/', get_assigned_subject_classes, name='get_assigned_subject_classes'),
+
+
+    #for config
+    path('get_classes_for_config/', get_classes_for_config, name='get_classes_for_config'),
+    path('get_subjects_for_config/', get_subjects_for_config, name='get_subjects_for_config'),
+    path('get_teachers_for_config/', get_teachers_for_config, name='get_teachers_for_config'),
+    path('assign_subjects_to_class/', assign_subjects_to_class, name='assign_subjects_to_class'),
+
 ]
 urlpatterns+=router.urls

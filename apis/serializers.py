@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import *
 from PIL import Image
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.response import Response
+from rest_framework import status
 
 
 
@@ -205,21 +207,28 @@ class SubjectSerializer(serializers.ModelSerializer):
 
 
 
+class SimpleEmployeeSerializer(serializers.ModelSerializer):
+    full_name = serializers.ReadOnlyField()
+    class Meta:
+        model = Employee
+        fields = ['id', 'full_name']
 
 
 class ClassSubjectSerializer(serializers.ModelSerializer):
-
+    class_name = ClassSerializer()  # Nested serializer for Class
+    subject = SubjectSerializer()  # Nested serializer for Subject
+    subject_teacher = SimpleEmployeeSerializer()  # Nested serializer for Employee
 
     class Meta:
         model = ClassSubject
-        fields = '__all__'
+        fields = ['id', 'class_name', 'subject', 'subject_teacher']
 
 
 
 class GETClassSubjectSerializer(serializers.ModelSerializer):
     class_name = ClassSerializer()  # Use nested serializer for class_name
     subject = SubjectSerializer()  # Use nested serializer for subject
-    subject_teacher = EmployeeSerializer()  # Use nested serializer for subject_teacher
+    subject_teacher = SimpleEmployeeSerializer()  # Use nested serializer for subject_teacher
 
     class Meta:
         model = ClassSubject
@@ -234,5 +243,43 @@ class SimpleEmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = ['id', 'full_name']
+
+
+
+
+class SubjectSerializerForConfig(serializers.Serializer):
+    subjectId = serializers.CharField(max_length=50)  # Adjust max_length as needed
+    teacherId = serializers.CharField(max_length=50)  # Adjust max_length as needed
+
+
+
+class ClassSubjectSerializerForConfig(serializers.Serializer):
+    class_id = serializers.IntegerField()
+    subjects = SubjectSerializerForConfig(many=True)
+
+    def create(self, validated_data):
+        subjects_data = validated_data.pop('subjects')
+        class_instance = Class.objects.get(id=validated_data['class_id'])
+        class_subjects = []
+
+        for subject_data in subjects_data:
+            subject_instance = Subject.objects.get(id=subject_data['subjectId'])  # get subject
+            teacher_instance = Employee.objects.get(id=subject_data['teacherId'])  # get teacher
+            
+            class_subject, created = ClassSubject.objects.get_or_create(
+                class_name=class_instance,
+                subject=subject_instance,
+                subject_teacher=teacher_instance
+            )
+            if created:
+                class_subjects.append(class_subject)  # Only append if a new instance was created
+        
+        return class_subjects  # Return created instances
+
+
+
+
+
+
 
 

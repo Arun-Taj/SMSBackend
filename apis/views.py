@@ -285,7 +285,7 @@ def get_classes(request):
 def get_subjects(request, class_id):
     # subjects = models.ClassSubject.objects.filter(class_name__school=request.user.school).filter(class_name=class_id).values('id', 'subject__subjectName')
     subjects = models.Subject.objects.filter(
-    class_name__school=request.user.school
+    school=request.user.school
     ).values('id', 'subjectName')  # Use the alias instead
     return Response(subjects)
 
@@ -297,6 +297,60 @@ def get_teachers(request):
     teachers = models.Employee.objects.filter(school=request.user.school)
     serializer = serializers.SimpleEmployeeSerializer(teachers, many=True)
     return Response(serializer.data)
+
+
+
+
+@api_view(['GET'])
+def get_classes_for_config(request):
+    # Using annotate to rename the field
+    classes = models.Class.objects.annotate(name=F('className')).values('id', 'name')
+    return Response(list(classes))
+
+
+
+
+@api_view(['GET'])
+def get_subjects_for_config(request):
+   
+    subjects = models.Subject.objects.filter(
+    school=request.user.school
+    ).annotate(name=F('subjectName')).values('id', 'name')  # Use the alias instead
+    return Response(list(subjects))
+
+
+
+
+@api_view(['GET'])
+def get_teachers_for_config(request):
+    teachers = models.Employee.objects.filter(school=request.user.school)
+    serializer = serializers.SimpleEmployeeSerializer(teachers, many=True)
+
+    # Rename 'full_name' to 'name' in the serialized data
+    serialized_data = serializer.data
+    for item in serialized_data:
+        item['name'] = item.pop('full_name')
+
+        
+    return Response(list(serialized_data))
+
+
+
+
+@api_view(['POST'])
+def assign_subjects_to_class(request):
+    data = request.data
+    serializer = serializers.ClassSubjectSerializerForConfig(data=data)
+    if serializer.is_valid():
+        saved_data = serializer.save()
+        class_subject_serializer = serializers.ClassSubjectSerializer(saved_data, many=True)
+        return Response(class_subject_serializer.data, status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
 
 
 

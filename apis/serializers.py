@@ -266,6 +266,10 @@ class ClassSubjectSerializerForConfig(serializers.Serializer):
             subject_instance = Subject.objects.get(id=subject_data['subjectId'])  # get subject
             teacher_instance = Employee.objects.get(id=subject_data['teacherId'])  # get teacher
             
+            if ClassSubject.objects.filter(class_name=class_instance, subject=subject_instance).exists():
+                raise serializers.ValidationError(f"Subject {subject_instance.subjectName} already exists in {class_instance.className}")
+
+
             class_subject, created = ClassSubject.objects.get_or_create(
                 class_name=class_instance,
                 subject=subject_instance,

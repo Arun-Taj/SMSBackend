@@ -15,7 +15,7 @@ from rest_framework.decorators import api_view
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.db.models import F
-
+from collections import defaultdict
 
 
 
@@ -342,7 +342,12 @@ def assign_subjects_to_class(request):
     data = request.data
     serializer = serializers.ClassSubjectSerializerForConfig(data=data)
     if serializer.is_valid():
-        saved_data = serializer.save()
+        try:
+            saved_data = serializer.save()
+        except Exception as e:
+            print(e)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         class_subject_serializer = serializers.ClassSubjectSerializer(saved_data, many=True)
         return Response(class_subject_serializer.data, status=status.HTTP_201_CREATED)
     else:
@@ -351,6 +356,37 @@ def assign_subjects_to_class(request):
 
 
 
+
+@api_view(['GET'])
+def get_classes_and_subjects(request):
+    class_subjects = models.ClassSubject.objects.filter(
+        subject__school=request.user.school
+    ).all()
+    data_dict = {}
+
+    for item in class_subjects:
+        id = item.class_name.id
+        name = item.class_name.className
+
+        # Check if the class ID already exists in the dictionary
+        if id not in data_dict:
+            # If it doesn't exist, initialize the entry
+            data_dict[id] = {
+                'id': id,
+                'name': name,
+                'subjects': []
+            }
+
+        # Add the subject to the existing entry
+        data_dict[id]['subjects'].append({
+            'subjectId': item.subject.id,
+            'teacherId': item.subject_teacher.id
+        })
+
+    # Convert the dictionary back to a list
+    data = list(data_dict.values())
+
+    return Response(data)
 
 
 

@@ -349,6 +349,7 @@ def assign_subjects_to_class(request):
         except ValidationError as e:
             # Extract error details
             error_details = e.detail if hasattr(e, 'detail') else str(e)
+            print(error_details)
             return Response({"error": error_details}, status=status.HTTP_400_BAD_REQUEST)
         
         # Serialize saved data for response
@@ -384,14 +385,41 @@ def get_classes_and_subjects(request):
 
         # Add the subject to the existing entry
         data_dict[id]['subjects'].append({
+            'class_subject_id': item.id,
             'subjectId': item.subject.id,
             'teacherId': item.subject_teacher.id
         })
+
 
     # Convert the dictionary back to a list
     data = list(data_dict.values())
 
     return Response(data)
+
+
+
+@api_view(['POST'])
+def update_class_subjects(request):
+    
+    for item in request.data:
+        class_subject = models.ClassSubject.objects.get(id=item['class_subject_id'])
+        class_subject.subject = models.Subject.objects.get(id=item['subjectId'])
+        class_subject.subject_teacher = models.Employee.objects.get(id=item['teacherId'])
+        class_subject.save()
+
+    return Response({"message": "Class subjects updated successfully"},status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

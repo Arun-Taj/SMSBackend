@@ -38,6 +38,7 @@ urlpatterns = [
     path('get_teachers_for_config/', get_teachers_for_config, name='get_teachers_for_config'),
     path('assign_subjects_to_class/', assign_subjects_to_class, name='assign_subjects_to_class'),
     path('get_classes_and_subjects/', get_classes_and_subjects, name='get_classes_and_subjects'),
+    path('update_class_subjects/', update_class_subjects, name='update_class_subjects'),
 
 ]
 urlpatterns+=router.urls

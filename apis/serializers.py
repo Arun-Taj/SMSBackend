@@ -255,31 +255,44 @@ class SubjectSerializerForConfig(serializers.Serializer):
 
 class ClassSubjectSerializerForConfig(serializers.Serializer):
     class_id = serializers.IntegerField()
-    subjects = SubjectSerializerForConfig(many=True)
+    subjects = SubjectSerializerForConfig(many=True)  # Assuming SubjectSerializerForConfig is defined elsewhere
 
     def create(self, validated_data):
         subjects_data = validated_data.pop('subjects')
-        class_instance = Class.objects.get(id=validated_data['class_id'])
+        try:
+            class_instance = Class.objects.get(id=validated_data['class_id'])
+        except Class.DoesNotExist:
+            raise serializers.ValidationError({"class_id": "Class does not exist."})
+
         class_subjects = []
 
         for subject_data in subjects_data:
-            subject_instance = Subject.objects.get(id=subject_data['subjectId'])  # get subject
-            teacher_instance = Employee.objects.get(id=subject_data['teacherId'])  # get teacher
-            
+            try:
+                subject_instance = Subject.objects.get(id=subject_data['subjectId'])
+            except Subject.DoesNotExist:
+                raise serializers.ValidationError({"subjectId": "Subject does not exist."})
+
+            try:
+                teacher_instance = Employee.objects.get(id=subject_data['teacherId'])
+            except Employee.DoesNotExist:
+                raise serializers.ValidationError({"teacherId": "Teacher does not exist."})
+
+            # Check for existing subject in class
             if ClassSubject.objects.filter(class_name=class_instance, subject=subject_instance).exists():
-                raise serializers.ValidationError(f"Subject {subject_instance.subjectName} already exists in {class_instance.className}")
+                raise serializers.ValidationError(
+                    f"Subject {subject_instance.subjectName} already exists in {class_instance.className}."
+                )
 
-
+            # Create or get ClassSubject
             class_subject, created = ClassSubject.objects.get_or_create(
                 class_name=class_instance,
                 subject=subject_instance,
                 subject_teacher=teacher_instance
             )
             if created:
-                class_subjects.append(class_subject)  # Only append if a new instance was created
-        
-        return class_subjects  # Return created instances
+                class_subjects.append(class_subject)  # Only append newly created instances
 
+        return class_subjects
 
 
 

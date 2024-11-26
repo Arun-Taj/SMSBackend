@@ -12,10 +12,11 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenBlacklistVi
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+
 from django.db.models import F
-from collections import defaultdict
+# from collections import defaultdict
+from rest_framework.exceptions import ValidationError
+
 
 
 
@@ -341,16 +342,20 @@ def get_teachers_for_config(request):
 def assign_subjects_to_class(request):
     data = request.data
     serializer = serializers.ClassSubjectSerializerForConfig(data=data)
+    
     if serializer.is_valid():
         try:
             saved_data = serializer.save()
-        except Exception as e:
-            print(e)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        except ValidationError as e:
+            # Extract error details
+            error_details = e.detail if hasattr(e, 'detail') else str(e)
+            return Response({"error": error_details}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Serialize saved data for response
         class_subject_serializer = serializers.ClassSubjectSerializer(saved_data, many=True)
         return Response(class_subject_serializer.data, status=status.HTTP_201_CREATED)
     else:
+        # Return validation errors from serializer
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

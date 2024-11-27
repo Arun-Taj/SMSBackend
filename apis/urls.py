@@ -40,5 +40,12 @@ urlpatterns = [
     path('get_classes_and_subjects/', get_classes_and_subjects, name='get_classes_and_subjects'),
     path('update_class_subjects/', update_class_subjects, name='update_class_subjects'),
 
+
+
+    #Accounts
+    path('get_chart_of_accounts/', get_chart_of_accounts, name='get_chart_of_accounts'),
+    path('add_chart_of_accounts/', add_chart_of_accounts, name='add_chart_of_accounts'),
+    path('delete_chart_of_accounts/<int:id>/', delete_chart_of_accounts, name='delete_chart_of_accounts'),
+
 ]
 urlpatterns+=router.urls

@@ -274,3 +274,29 @@ class ClassSubject(models.Model):
         return f"{self.class_name.className} -> {self.subject}"
 
 
+
+CHART_OF_ACCOUNT_TYPES = (
+    ('income', 'Income'), ('expense', 'Expense')
+)
+
+class ChartOfAccountQuerySet(models.QuerySet):
+    def expenses(self):
+        return self.filter(type='expense')
+    
+    def incomes(self):
+        return self.filter(type='income')
+
+class ChartOfAccount(models.Model):
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='chart_of_accounts')
+    head = models.CharField(max_length=100)
+    type = models.CharField(choices=CHART_OF_ACCOUNT_TYPES, default='income', max_length=10)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    objects = ChartOfAccountQuerySet.as_manager()
+
+    def __str__(self) -> str:
+        return f"{self.head} -> {self.school}"
+
+
+
+

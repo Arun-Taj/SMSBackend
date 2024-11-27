@@ -414,7 +414,37 @@ def update_class_subjects(request):
 
 
 
+@api_view(['GET'])
+def get_chart_of_accounts(request):
+    chart_of_accounts = models.ChartOfAccount.objects.filter(school=request.user.school).order_by('-created_at').values()
+    return Response(chart_of_accounts)
 
+
+
+@api_view(['POST'])
+def add_chart_of_accounts(request):
+    data = request.data
+    head  = data['head']
+    type = data['type']
+    school = request.user.school
+    
+    created = models.ChartOfAccount.objects.create(head=head, type=type, school=school)
+
+    if created:
+        return Response({"message": "Chart of account created successfully"}, status=status.HTTP_201_CREATED)
+    else:
+        return Response({"error": "Failed to create chart of account"}, status=status.HTTP_400_BAD_REQUEST)
+  
+
+
+
+@api_view(['DELETE'])
+def delete_chart_of_accounts(request, id):
+    deleted = models.ChartOfAccount.objects.filter(id=id).delete()
+    if deleted:
+        return Response({"message": "Chart of account deleted successfully"}, status=status.HTTP_200_OK)
+    else:
+        return Response({"error": "Failed to delete chart of account"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

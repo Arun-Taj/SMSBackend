@@ -300,3 +300,23 @@ class ChartOfAccount(models.Model):
 
 
 
+
+class IncomeExpense(models.Model):
+    head = models.ForeignKey(ChartOfAccount, on_delete=models.CASCADE, related_name='incomes')
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='incomes')
+    date = models.DateField(null=True, blank=True)
+    particulars = models.CharField(max_length=200, null=True, blank=True)
+    amount = models.DecimalField(max_digits=50, decimal_places=2, null=True, blank=True)
+
+
+    def __str__(self) -> str:
+        return f"{self.head.head} -> {self.school}"
+    
+
+
+
+
+
+
+
+

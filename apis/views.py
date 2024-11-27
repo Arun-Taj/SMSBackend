@@ -449,6 +449,72 @@ def delete_chart_of_accounts(request, id):
 
 
 
+@api_view(['GET'])
+def get_income_heads(request):
+    income_heads = models.ChartOfAccount.objects.incomes().filter(school=request.user.school).values('id', 'head')
+    return Response(income_heads)
+
+
+@api_view(['GET'])
+def get_expense_heads(request):
+    expense_heads = models.ChartOfAccount.objects.expenses().filter(school=request.user.school).values('id', 'head')
+    return Response(expense_heads)
+
+
+
+
+@api_view(['POST'])
+def add_income_expense(request):
+    data = request.data
+    try:
+        head  = models.ChartOfAccount.objects.get(id=data['head'])
+    except models.ChartOfAccount.DoesNotExist:
+        return Response({"error": "Income or Expense Head does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    date = data['date']
+    particulars = data['particulars']
+    amount = data['amount']
+    school = request.user.school
+    
+    created = models.IncomeExpense.objects.create(head=head, date=date, particulars=particulars, amount=amount, school=school)
+
+    if created:
+        return Response({"message": f"{head.type} created successfully"}, status=status.HTTP_201_CREATED)
+    else:
+        return Response({"error": f"Failed to create {head.type}"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def get_income_expenses(request):
+    income_expenses = models.IncomeExpense.objects.filter(
+        school=request.user.school
+    ).select_related('head').order_by('-date')
+    
+    serializer = serializers.IncomeExpenseSerializer(income_expenses, many=True)
+    return Response(serializer.data)
+
+
+
+
+
+@api_view(['DELETE'])
+def delete_income_expense(request, id):
+    deleted = models.IncomeExpense.objects.filter(id=id).delete()
+    if deleted:
+        return Response({"message": "Income or Expense deleted successfully"}, status=status.HTTP_200_OK)
+    else:
+        return Response({"error": "Failed to delete Income or Expense"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+
+
+
+
 
 
 

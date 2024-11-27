@@ -46,6 +46,12 @@ urlpatterns = [
     path('get_chart_of_accounts/', get_chart_of_accounts, name='get_chart_of_accounts'),
     path('add_chart_of_accounts/', add_chart_of_accounts, name='add_chart_of_accounts'),
     path('delete_chart_of_accounts/<int:id>/', delete_chart_of_accounts, name='delete_chart_of_accounts'),
+    path('get_income_heads/', get_income_heads, name='get_income_heads'),
+    path('get_expense_heads/', get_expense_heads, name='get_expense_heads'),
+    path('add_income_expense/', add_income_expense, name='add_income_expense'),
+    path('get_income_expenses/', get_income_expenses, name='get_income_expenses'),
+    path('delete_income_expense/<int:id>/', delete_income_expense, name='delete_income_expense'),
+    
 
 ]
 urlpatterns+=router.urls

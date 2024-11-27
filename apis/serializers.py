@@ -297,6 +297,11 @@ class ClassSubjectSerializerForConfig(serializers.Serializer):
 
 
 
+class IncomeExpenseSerializer(serializers.ModelSerializer):
+    head_name = serializers.CharField(source='head.head')  # Fetch the `head` field from `ChartOfAccount`
+    head_type = serializers.CharField(source='head.type')  # Fetch the `type` field from `ChartOfAccount`
 
-
+    class Meta:
+        model = IncomeExpense
+        fields = ['id', 'head', 'head_name', 'head_type', 'school', 'date', 'particulars', 'amount']
 

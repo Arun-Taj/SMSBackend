@@ -59,6 +59,8 @@ urlpatterns = [
     path('exam_sessions/', get_exam_sessions, name="get_exam_sessions"),
     path('get_class_subjects/', get_class_subjects, name="get_class_subjects"),
     path('configure_exam_papers/', configure_exam_papers, name="configure_exam_papers"),
+    path('get_exams/<int:exam_session_id>/', get_exams, name="get_exams"),
+    path('delete_exam/<int:exam_id>/', delete_exam, name="delete_exam"),
     
 
 ]

@@ -573,9 +573,27 @@ def configure_exam_papers(request):
 
 
 
+@api_view(['GET'])
+def get_exams(request, exam_session_id):
+
+    try:
+        exam_session = models.ExamSession.objects.get(id=exam_session_id)
+    except models.ExamSession.DoesNotExist:
+        return Response({"error": "Exam session does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    exams = models.Exam.objects.filter(school=request.user.school, session=exam_session).values('id','name')
+    return Response(exams)
 
 
 
+
+@api_view(['DELETE'])
+def delete_exam(request, exam_id):
+    deleted = models.Exam.objects.filter(id=exam_id).delete()
+    if deleted:
+        return Response({"message": "Exam deleted successfully"}, status=status.HTTP_200_OK)
+    else:
+        return Response({"error": "Failed to delete Exam"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

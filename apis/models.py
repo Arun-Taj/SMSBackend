@@ -86,76 +86,6 @@ class School(models.Model):
 
     def __str__(self) -> str:
         return self.admin.username + " - " + self.tag_line
-    
-
-
-
-class Student(models.Model):
-    school = models.ForeignKey(School, on_delete=models.CASCADE, null=True)
-    aadharNumber = models.CharField(max_length=15, null=True, blank=True)
-    alternatePhoneNumber = models.CharField(max_length=10, null=True, blank=True)
-    bloodGroup = models.CharField(max_length=10, null=True, blank=True)
-    cAddress1 = models.CharField(max_length=100, null=True, blank=True)
-    caste = models.CharField(max_length=50, null=True, blank=True)
-    ccountry = models.CharField(max_length=50, null=True, blank=True)
-    cdistrict = models.CharField(max_length=50, null=True, blank=True)
-    classOfAdmission = models.CharField(max_length=50, null=True, blank=True)
-    cstate = models.CharField(max_length=50, null=True, blank=True)
-    ctownVillageCity = models.CharField(max_length=50, null=True, blank=True)
-    czipCode = models.CharField(max_length=30, null=True, blank=True)
-    dateOfBirth = models.DateField(null=True, blank=True)
-    disease = models.CharField(max_length=50, null=True, blank=True)
-    fatherAadharNumber = models.CharField(max_length=15, null=True, blank=True)
-    fatherFirstName = models.CharField(max_length=50, null=True, blank=True)
-    fatherLastName = models.CharField(max_length=50, null=True, blank=True)
-    fatherMiddleName = models.CharField(max_length=50, null=True, blank=True)
-    fatherOccupation = models.CharField(max_length=50, null=True, blank=True)
-    gender = models.CharField(max_length=10, null=True, blank=True)
-    guardianAadharNumber = models.CharField(max_length=15, null=True, blank=True)
-    guardianFirstName = models.CharField(max_length=50, null=True, blank=True)
-    guardianLastName = models.CharField(max_length=50, null=True, blank=True)
-    guardianMiddleName = models.CharField(max_length=50, null=True, blank=True)
-    guardianOccupation = models.CharField(max_length=50, null=True, blank=True)
-    guardianPhoneNumber = models.CharField(max_length=10, null=True, blank=True)
-    lastAttendance = models.CharField(max_length=50, null=True, blank=True)
-
-    motherAadharNumber = models.CharField(max_length=15, null=True, blank=True)
-    motherFirstName = models.CharField(max_length=50, null=True, blank=True)
-    motherLastName = models.CharField(max_length=50, null=True, blank=True)
-    motherMiddleName = models.CharField(max_length=50, null=True, blank=True)
-    motherOccupation = models.CharField(max_length=50, null=True, blank=True)
-    motherTongue = models.CharField(max_length=50, null=True, blank=True)
-    nationality = models.CharField(max_length=50, null=True, blank=True)
-    pAddress1 = models.CharField(max_length=50, null=True, blank=True)
-    pcountry = models.CharField(max_length=50, null=True, blank=True)
-    pdistrict = models.CharField(max_length=50, null=True, blank=True)
-    personalIdentification = models.CharField(max_length=50, null=True, blank=True)
-    phoneNumber = models.CharField(max_length=15, null=True, blank=True)
-    pstate = models.CharField(max_length=50, null=True, blank=True)
-    ptownVillageCity = models.CharField(max_length=50, null=True, blank=True)
-    pzipCode = models.CharField(max_length=30, null=True, blank=True)
-    relationWithGuardian = models.CharField(max_length=50, null=True, blank=True)
-    religion = models.CharField(max_length=30, null=True, blank=True)
-    remarks = models.CharField(max_length=50, null=True, blank=True)
-    sameAsFatherMother = models.BooleanField(default=False)
-    sameAsPermanentAddress = models.BooleanField(default=False)
-    studentFirstName = models.CharField(max_length=50, null=True, blank=True)
-    studentLastName = models.CharField(max_length=50, null=True, blank=True)
-    studentMiddleName = models.CharField(max_length=50, null=True, blank=True)
-    transferCertificate = models.CharField(max_length=50, null=True, blank=True)
-    enrollmentId = models.CharField(max_length=20, unique=True, editable=False)
-
-    def save(self, *args, **kwargs):
-
-
-        if not self.enrollmentId:
-            # Generate a unique enrollmentId based on UUID
-            self.enrollmentId = f'ENR-{uuid.uuid4().hex[:10].upper()}'
-        
-        super(Student, self).save(*args, **kwargs)
-
-    def __str__(self) -> str:
-        return f"{self.studentFirstName} {self.studentMiddleName} {self.studentLastName}"
 
 
 
@@ -221,6 +151,7 @@ class Employee(models.Model):
         return f"{self.employeeFirstName} {self.employeeMiddleName} {self.employeeLastName}"
     
 
+ 
 
 
 class Class(models.Model):
@@ -239,6 +170,76 @@ class Class(models.Model):
 
 
 
+
+
+
+
+class Student(models.Model):
+    school = models.ForeignKey(School, on_delete=models.CASCADE, null=True)
+    aadharNumber = models.CharField(max_length=15, null=True, blank=True)
+    alternatePhoneNumber = models.CharField(max_length=10, null=True, blank=True)
+    bloodGroup = models.CharField(max_length=10, null=True, blank=True)
+    cAddress1 = models.CharField(max_length=100, null=True, blank=True)
+    caste = models.CharField(max_length=50, null=True, blank=True)
+    ccountry = models.CharField(max_length=50, null=True, blank=True)
+    cdistrict = models.CharField(max_length=50, null=True, blank=True)
+    classOfAdmission = models.OneToOneField(Class, on_delete=models.SET_NULL, null=True, related_name='students')
+    cstate = models.CharField(max_length=50, null=True, blank=True)
+    ctownVillageCity = models.CharField(max_length=50, null=True, blank=True)
+    czipCode = models.CharField(max_length=30, null=True, blank=True)
+    dateOfBirth = models.DateField(null=True, blank=True)
+    disease = models.CharField(max_length=50, null=True, blank=True)
+    fatherAadharNumber = models.CharField(max_length=15, null=True, blank=True)
+    fatherFirstName = models.CharField(max_length=50, null=True, blank=True)
+    fatherLastName = models.CharField(max_length=50, null=True, blank=True)
+    fatherMiddleName = models.CharField(max_length=50, null=True, blank=True)
+    fatherOccupation = models.CharField(max_length=50, null=True, blank=True)
+    gender = models.CharField(max_length=10, null=True, blank=True)
+    guardianAadharNumber = models.CharField(max_length=15, null=True, blank=True)
+    guardianFirstName = models.CharField(max_length=50, null=True, blank=True)
+    guardianLastName = models.CharField(max_length=50, null=True, blank=True)
+    guardianMiddleName = models.CharField(max_length=50, null=True, blank=True)
+    guardianOccupation = models.CharField(max_length=50, null=True, blank=True)
+    guardianPhoneNumber = models.CharField(max_length=10, null=True, blank=True)
+    lastAttendance = models.CharField(max_length=50, null=True, blank=True)
+
+    motherAadharNumber = models.CharField(max_length=15, null=True, blank=True)
+    motherFirstName = models.CharField(max_length=50, null=True, blank=True)
+    motherLastName = models.CharField(max_length=50, null=True, blank=True)
+    motherMiddleName = models.CharField(max_length=50, null=True, blank=True)
+    motherOccupation = models.CharField(max_length=50, null=True, blank=True)
+    motherTongue = models.CharField(max_length=50, null=True, blank=True)
+    nationality = models.CharField(max_length=50, null=True, blank=True)
+    pAddress1 = models.CharField(max_length=50, null=True, blank=True)
+    pcountry = models.CharField(max_length=50, null=True, blank=True)
+    pdistrict = models.CharField(max_length=50, null=True, blank=True)
+    personalIdentification = models.CharField(max_length=50, null=True, blank=True)
+    phoneNumber = models.CharField(max_length=15, null=True, blank=True)
+    pstate = models.CharField(max_length=50, null=True, blank=True)
+    ptownVillageCity = models.CharField(max_length=50, null=True, blank=True)
+    pzipCode = models.CharField(max_length=30, null=True, blank=True)
+    relationWithGuardian = models.CharField(max_length=50, null=True, blank=True)
+    religion = models.CharField(max_length=30, null=True, blank=True)
+    remarks = models.CharField(max_length=50, null=True, blank=True)
+    sameAsFatherMother = models.BooleanField(default=False)
+    sameAsPermanentAddress = models.BooleanField(default=False)
+    studentFirstName = models.CharField(max_length=50, null=True, blank=True)
+    studentLastName = models.CharField(max_length=50, null=True, blank=True)
+    studentMiddleName = models.CharField(max_length=50, null=True, blank=True)
+    transferCertificate = models.CharField(max_length=50, null=True, blank=True)
+    enrollmentId = models.CharField(max_length=20, unique=True, editable=False)
+
+    def save(self, *args, **kwargs):
+
+
+        if not self.enrollmentId:
+            # Generate a unique enrollmentId based on UUID
+            self.enrollmentId = f'ENR-{uuid.uuid4().hex[:10].upper()}'
+        
+        super(Student, self).save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"{self.studentFirstName} {self.studentMiddleName} {self.studentLastName}"
 
 
 
@@ -314,8 +315,35 @@ class IncomeExpense(models.Model):
     
 
 
+class ExamSession(models.Model):
+    name = models.CharField(max_length=50, null=True, blank=True, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
 
 
+
+class Exam(models.Model):
+    session = models.ForeignKey(ExamSession, on_delete=models.CASCADE, related_name='exams')
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='exams', null=True, blank=True)
+    name = models.CharField(max_length=150, null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.school} => {self.session.name}'s -> {self.name}"
+    
+
+
+
+class ExamPaper(models.Model):
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='exam_papers')
+    subject = models.ForeignKey(ClassSubject, on_delete=models.CASCADE, related_name='exam_papers')
+    full_marks = models.IntegerField(null=True, blank=True)
+    pass_marks = models.IntegerField(null=True, blank=True)
+
+    def __str__(self) -> str:   
+        return f"{self.exam} -> {self.subject.subject.subjectName}"
 
 
 

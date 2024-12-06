@@ -112,6 +112,7 @@ class SchoolSerializer(serializers.HyperlinkedModelSerializer):
 class StudentSerializer(serializers.HyperlinkedModelSerializer):
     # rollNo = serializers.IntegerField(read_only=True)  # Add rollNo as a read-only field
     id = serializers.IntegerField(read_only=True)
+    # classOfAdmission = serializers.PrimaryKeyRelatedField() #need to change
 
 
 
@@ -128,8 +129,10 @@ class StudentSerializer(serializers.HyperlinkedModelSerializer):
         return representation
 
 
+
     def save(self, *args, **kwargs):
         request = self.context.get("request")  # Get request from context
+      
         if request:
             # If this is a new instance, set the school
             if self.instance is None:
@@ -214,14 +217,46 @@ class SimpleEmployeeSerializer(serializers.ModelSerializer):
         fields = ['id', 'full_name']
 
 
+# class ClassSubjectSerializer(serializers.ModelSerializer):
+#     class_name = ClassSerializer()  # Nested serializer for Class
+#     subject = SubjectSerializer()  # Nested serializer for Subject
+#     subject_teacher = SimpleEmployeeSerializer()  # Nested serializer for Employee
+
+#     class Meta:
+#         model = ClassSubject
+#         fields = ['id', 'class_name', 'subject', 'subject_teacher']
+
 class ClassSubjectSerializer(serializers.ModelSerializer):
-    class_name = ClassSerializer()  # Nested serializer for Class
-    subject = SubjectSerializer()  # Nested serializer for Subject
-    subject_teacher = SimpleEmployeeSerializer()  # Nested serializer for Employee
+    class_name = serializers.SerializerMethodField()  # Replace nested serializer
+    subject = serializers.SerializerMethodField()  # Replace nested serializer
+    subject_teacher = serializers.SerializerMethodField()  # Replace nested serializer
 
     class Meta:
         model = ClassSubject
         fields = ['id', 'class_name', 'subject', 'subject_teacher']
+
+    def get_class_name(self, obj):
+        return {
+            "id": obj.class_name.id,
+            "name": obj.class_name.name,
+            # Add other required fields here
+        }
+
+    def get_subject(self, obj):
+        return {
+            "id": obj.subject.id,
+            "name": obj.subject.name,
+            # Add other required fields here
+        }
+
+    def get_subject_teacher(self, obj):
+        return {
+            "id": obj.subject_teacher.id,
+            "full_name": obj.subject_teacher.full_name,
+            # Add other required fields here
+        }
+
+
 
 
 
@@ -304,4 +339,72 @@ class IncomeExpenseSerializer(serializers.ModelSerializer):
     class Meta:
         model = IncomeExpense
         fields = ['id', 'head', 'head_name', 'head_type', 'school', 'date', 'particulars', 'amount']
+
+
+
+
+
+class ExamSubjectSerializer(serializers.Serializer):
+    subjectId = serializers.IntegerField()
+    totalMarks = serializers.IntegerField()
+    passMarks = serializers.IntegerField()
+
+
+
+class ExamClassSerializer(serializers.Serializer):
+    classId = serializers.IntegerField()
+    subjects = ExamSubjectSerializer(many=True)
+
+
+
+class ConfigureExamPaperSerializer(serializers.Serializer):
+    currentSession = serializers.IntegerField()
+    currentSessionName = serializers.CharField(max_length=255)
+    startingDate = serializers.DateField(required=False, allow_null=True)
+    endingDate = serializers.DateField(required=False, allow_null=True)
+    examName = serializers.CharField(max_length=255)
+    classes = ExamClassSerializer(many=True)
+
+
+    
+
+
+    def save(self,**kwargs):
+        print(self.validated_data)
+        data = self.validated_data
+        session_id = data.get('currentSession')
+        session_instance = ExamSession.objects.get(id=session_id)
+        school = kwargs.get('request').user.school
+        exam_start_date = data.get('startingDate')
+        exam_end_date = data.get('endingDate')
+        exam_name = data.get('examName')
+        exam = Exam.objects.create(session=session_instance, school=school, name=exam_name, start_date=exam_start_date, end_date=exam_end_date)
+
+        if exam is None:
+            return None
+        
+        classes = data.get('classes')
+        for cls in classes:
+            subjects = cls.get('subjects')
+            for subject in subjects:
+                subject_id = subject.get('subjectId')
+                total_marks = subject.get('totalMarks')
+                pass_marks = subject.get('passMarks')
+                subject_instance = ClassSubject.objects.get(id=subject_id)
+                print(subject_id, total_marks, pass_marks, subject_instance)
+                ExamPaper.objects.create(exam=exam, subject=subject_instance, full_marks=total_marks, pass_marks=pass_marks)
+        # return self.validated_data
+
+
+
+
+
+
+
+
+
+
+
+
+
 

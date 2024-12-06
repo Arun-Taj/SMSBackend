@@ -51,6 +51,14 @@ urlpatterns = [
     path('add_income_expense/', add_income_expense, name='add_income_expense'),
     path('get_income_expenses/', get_income_expenses, name='get_income_expenses'),
     path('delete_income_expense/<int:id>/', delete_income_expense, name='delete_income_expense'),
+
+
+
+
+    #exams
+    path('exam_sessions/', get_exam_sessions, name="get_exam_sessions"),
+    path('get_class_subjects/', get_class_subjects, name="get_class_subjects"),
+    path('configure_exam_papers/', configure_exam_papers, name="configure_exam_papers"),
     
 
 ]

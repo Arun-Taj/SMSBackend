@@ -14,7 +14,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view
 
 from django.db.models import F
-# from collections import defaultdict
+# from django.contrib.postgres.aggregates import ArrayAgg
+from collections import defaultdict
 from rest_framework.exceptions import ValidationError
 
 
@@ -133,6 +134,10 @@ class StudentViewSet(viewsets.ModelViewSet):
     parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            # raise PermissionError('User is not authenticated')
+            return models.Student.objects.none()
+
         return super().get_queryset().filter(school=self.request.user.school).order_by('studentFirstName')
     
 
@@ -149,7 +154,8 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         if self.request.user.is_authenticated:
             return super().get_queryset().filter(school=self.request.user.school).order_by('employeeFirstName')
         else:
-            raise PermissionError('User is not authenticated')
+            # raise PermissionError('User is not authenticated')
+            return models.Employee.objects.none()
     
 
     def create(self, request, *args, **kwargs):
@@ -173,8 +179,8 @@ class ClassViewSet(viewsets.ModelViewSet):
         if self.request.user.is_authenticated:
             return super().get_queryset().filter(school=self.request.user.school).prefetch_related('class_teacher')
         else:
-            raise PermissionError('User is not authenticated')
-        
+            # raise PermissionError('User is not authenticated')
+            return models.Class.objects.none()
 
 
 
@@ -189,7 +195,8 @@ class SubjectViewSet(viewsets.ModelViewSet):
         if self.request.user.is_authenticated:
             return super().get_queryset().filter(school=self.request.user.school)
         else:
-            raise PermissionError('User is not authenticated')
+            # raise PermissionError('User is not authenticated')
+            return models.Subject.objects.none()
 
 
 
@@ -211,7 +218,8 @@ class ClassSubjectViewSet(viewsets.ModelViewSet):
             )
     
         else:
-            raise PermissionError("User is not authenticated")
+            # raise PermissionError("User is not authenticated")
+            return models.ClassSubject.objects.none()
         
 
     # def list(self, request, *args, **kwargs):
@@ -305,7 +313,7 @@ def get_teachers(request):
 @api_view(['GET'])
 def get_classes_for_config(request):
     # Using annotate to rename the field
-    classes = models.Class.objects.annotate(name=F('className')).values('id', 'name')
+    classes = models.Class.objects.filter(school=request.user.school).annotate(name=F('className')).values('id', 'name')
     return Response(list(classes))
 
 
@@ -504,6 +512,66 @@ def delete_income_expense(request, id):
         return Response({"message": "Income or Expense deleted successfully"}, status=status.HTTP_200_OK)
     else:
         return Response({"error": "Failed to delete Income or Expense"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+@api_view(['GET'])
+def get_exam_sessions(request):
+    exam_sessions = models.ExamSession.objects.values()
+    return Response(exam_sessions)
+
+
+
+@api_view(['GET'])
+def get_class_subjects(request):
+
+    class_subjects = models.ClassSubject.objects.filter(class_name__school=request.user.school).select_related('class_name','subject').only('id', 'subject__subjectName', 'class_name__className').annotate(
+        class_id=F('class_name__id'),
+        class_title=F('class_name__className'),
+        sub_id=F('id'),
+        sub_name=F('subject__subjectName')
+    )
+
+    # Initialize a defaultdict to group classes and their subjects
+    grouped_data = defaultdict(lambda: {"class": {}, "subjects": []})
+
+    # Iterate through the class_subjects data
+    for subject in class_subjects:
+        class_id = subject.class_id
+        # Ensure the class object is set only once
+        if not grouped_data[class_id]["class"]:
+            grouped_data[class_id]["class"] = {
+                "id": class_id,
+                "name": subject.class_title
+            }
+        # Add subject details to the subjects list
+        grouped_data[class_id]["subjects"].append({
+            "id": subject.sub_id,
+            "name": subject.sub_name
+        })
+
+    # Convert the grouped data to a list
+    result = list(grouped_data.values())
+
+    return Response(result, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def configure_exam_papers(request):
+
+    serializer = serializers.ConfigureExamPaperSerializer(data=request.data)
+
+    if not serializer.is_valid():
+        print("Validation failed. Errors:", serializer.errors)
+        return Response({"error": "Failed to configure exam papers"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # serializer.save(school = request.user.school)
+    serializer.save(request=request)
+    return Response({"message": "Exam papers configured successfully"}, status=status.HTTP_201_CREATED)
+
+
+
 
 
 

@@ -61,6 +61,8 @@ urlpatterns = [
     path('configure_exam_papers/', configure_exam_papers, name="configure_exam_papers"),
     path('get_exams/<int:exam_session_id>/', get_exams, name="get_exams"),
     path('delete_exam/<int:exam_id>/', delete_exam, name="delete_exam"),
+    path('get_exam_papers/<int:exam_id>/', get_exam_papers, name="get_exam_papers"),
+    path('update_exam_papers/', update_exam_papers, name="update_exam_papers"),
     
 
 ]

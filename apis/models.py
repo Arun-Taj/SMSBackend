@@ -156,7 +156,7 @@ class Employee(models.Model):
 
 class Class(models.Model):
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='classes')
-    className = models.CharField(max_length=50, null=True, blank=True)
+    className = models.CharField(max_length=50, null=True, blank=True, unique=True)
     class_teacher = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, related_name='classes')
     monthlyFees = models.IntegerField(null=True, blank=True)
 

@@ -599,6 +599,92 @@ def delete_exam(request, exam_id):
 
 
 
+@api_view(['GET'])
+def get_exam_papers(request, exam_id):
+    exam = models.Exam.objects.select_related('session').get(id=exam_id)
+    response = {
+        "session":{
+            'id': exam.session.id,
+            'name': exam.session.name
+        },
+        "exam_name": exam.name,
+        "exam_id": exam.id,
+        'start_date': exam.start_date,
+        'end_date': exam.end_date,
+    }
+
+    exam_papers = models.ExamPaper.objects.filter(exam=exam).select_related('subject', 'subject__class_name').annotate(
+        exam_paper_id = F('id'),
+        subject_name=F('subject__subject__subjectName'),
+        class_id=F('subject__class_name_id'),
+        class_name=F('subject__class_name__className'),
+
+    ).values('exam_paper_id', 'subject_name', 'full_marks', 'pass_marks','class_name')
+
+
+
+    grouped_as_class_exam_papers = defaultdict(list)
+
+    for paper in exam_papers:
+        grouped_as_class_exam_papers[paper['class_name']].append({
+            'exam_paper_id': paper['exam_paper_id'],
+            'subject_name': paper['subject_name'],
+            'total_marks': paper['full_marks'],
+            'pass_marks': paper['pass_marks'],
+        })
+
+    response['exam_papers'] = grouped_as_class_exam_papers
+
+
+    # import pprint
+    # pprint.pprint(response)
+    return Response(response, status=status.HTTP_200_OK)
+
+
+
+
+
+
+@api_view(['POST'])
+def update_exam_papers(request):
+    # print(request.data)
+    data = request.data
+    exam_session_id = data.get('session').get('id')
+    session = models.ExamSession.objects.get(id=exam_session_id)
+    if not session:
+        return Response({"error": "Session does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+    exam_id = data['exam_id']
+    exam = models.Exam.objects.get(id=exam_id)
+    if not exam:
+        return Response({"error": "Exam does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    models.Exam.objects.filter(id=exam_id).update(
+        session = session,
+        name = data['exam_name'],
+        start_date = data['start_date'],
+        end_date = data['end_date'],
+    )
+    exam_papers = data['exam_papers']
+
+    for classname, papers in exam_papers.items():
+        for paper in papers:
+            try:
+                # print(paper)
+                models.ExamPaper.objects.filter(id=paper['exam_paper_id']).update(
+                    full_marks = paper['total_marks'],
+                    pass_marks = paper['pass_marks'],
+                )
+            except models.ExamPaper.DoesNotExist:
+                return Response({"error": f"Exam paper with id {paper['exam_paper_id']} does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response({"message": "Exam papers updated successfully"}, status=status.HTTP_201_CREATED)
+
+
+
+
+
 
 
 

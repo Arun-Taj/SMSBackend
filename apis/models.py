@@ -183,7 +183,7 @@ class Student(models.Model):
     caste = models.CharField(max_length=50, null=True, blank=True)
     ccountry = models.CharField(max_length=50, null=True, blank=True)
     cdistrict = models.CharField(max_length=50, null=True, blank=True)
-    classOfAdmission = models.OneToOneField(Class, on_delete=models.SET_NULL, null=True, related_name='students')
+    classOfAdmission = models.ForeignKey(Class, on_delete=models.SET_NULL, null=True, related_name='students')
     cstate = models.CharField(max_length=50, null=True, blank=True)
     ctownVillageCity = models.CharField(max_length=50, null=True, blank=True)
     czipCode = models.CharField(max_length=30, null=True, blank=True)
@@ -240,6 +240,17 @@ class Student(models.Model):
 
     def __str__(self) -> str:
         return f"{self.studentFirstName} {self.studentMiddleName} {self.studentLastName}"
+    
+
+
+    @property
+    def full_name(self):
+        return f"{self.studentFirstName} {self.studentMiddleName} {self.studentLastName}"
+    
+
+    @property
+    def father_full_name(self):
+        return f"{self.fatherFirstName} {self.fatherMiddleName} {self.fatherLastName}"
 
 
 
@@ -342,8 +353,36 @@ class ExamPaper(models.Model):
     full_marks = models.IntegerField(null=True, blank=True)
     pass_marks = models.IntegerField(null=True, blank=True)
 
+    class Meta:
+        unique_together = ('exam', 'subject')
+
+
     def __str__(self) -> str:   
         return f"{self.exam} -> {self.subject.subject.subjectName}"
+
+
+
+
+
+class ObtainedMark(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='obtained_marks')
+    paper = models.ForeignKey(ExamPaper, on_delete=models.CASCADE, related_name='obtained_marks')
+    marks = models.IntegerField(null=True, blank=True)
+
+
+    class Meta:
+        unique_together = ('student', 'paper')
+
+    def __str__(self) -> str:
+        return f"{self.student} -> {self.paper.subject.subject.subjectName}"
+
+
+
+
+
+
+
+
 
 
 

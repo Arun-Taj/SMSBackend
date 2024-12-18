@@ -62,8 +62,17 @@ urlpatterns = [
     path('get_exams/<int:exam_session_id>/', get_exams, name="get_exams"),
     path('delete_exam/<int:exam_id>/', delete_exam, name="delete_exam"),
     path('get_exam_papers/<int:exam_id>/', get_exam_papers, name="get_exam_papers"),
+    path('delete_exam_paper/<int:paper_id>/', delete_exam_paper, name="delete_exam_paper"),
     path('update_exam_papers/', update_exam_papers, name="update_exam_papers"),
-    
+    path('get_exams_classes/<int:exam_id>/', get_exams_classes, name="get_exams_classes"),
+    path('get_students_with_marks/<int:exam_id>/<int:class_id>/',get_students_with_marks, name="get_students_with_marks"),
+    path('get_subjects_for_this_exam/<int:exam_id>/<int:class_id>/',get_subjects_for_this_exam, name="get_subjects_for_this_exam"),
+
+
+
+    #students
+    path('get_students_for_marks_entry/<int:exam_id>/<int:class_id>/', get_students_for_marks_entry, name="get_students_for_marks_entry"),
+    path('update_marks/', update_marks, name="update_marks"),
 
 ]
 urlpatterns+=router.urls

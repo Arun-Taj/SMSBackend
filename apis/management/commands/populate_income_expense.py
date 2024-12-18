@@ -1,7 +1,7 @@
 import random
 from faker import Faker
 from django.core.management.base import BaseCommand
-from apis.models import IncomeExpense, ChartOfAccount, School
+from apis.models import IncomeExpense, ChartOfAccount, School, Student, Class
 
 class Command(BaseCommand):
     help = "Populate the IncomeExpense model with fake data"
@@ -32,3 +32,9 @@ class Command(BaseCommand):
             )
 
         self.stdout.write(self.style.SUCCESS("Successfully populated IncomeExpense with fake data!"))
+
+
+
+
+
+

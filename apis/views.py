@@ -13,11 +13,11 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, Ou
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view
 
-from django.db.models import F
-# from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models import F, Value
+from django.db.models.functions import Concat
 from collections import defaultdict
 from rest_framework.exceptions import ValidationError
-
+from django.shortcuts import get_object_or_404
 
 
 
@@ -577,11 +577,14 @@ def configure_exam_papers(request):
 def get_exams(request, exam_session_id):
 
     try:
+        # print(exam_session_id)
         exam_session = models.ExamSession.objects.get(id=exam_session_id)
+        # print(exam_session)
     except models.ExamSession.DoesNotExist:
         return Response({"error": "Exam session does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
     exams = models.Exam.objects.filter(school=request.user.school, session=exam_session).values('id','name')
+    # print(exams)
     return Response(exams)
 
 
@@ -644,6 +647,14 @@ def get_exam_papers(request, exam_id):
 
 
 
+@api_view(['DELETE'])
+def delete_exam_paper(request, paper_id):
+    # print(paper_id)
+    deleted = models.ExamPaper.objects.filter(id=paper_id).delete()
+    if not deleted:
+        return Response({"message": "Failed to delete Exam paper"}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({"message": "Exam paper deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
 
 @api_view(['POST'])
 def update_exam_papers(request):
@@ -680,6 +691,219 @@ def update_exam_papers(request):
                 return Response({"error": f"Exam paper with id {paper['exam_paper_id']} does not exist"}, status=status.HTTP_400_BAD_REQUEST)
     
     return Response({"message": "Exam papers updated successfully"}, status=status.HTTP_201_CREATED)
+
+
+
+
+
+@api_view(['GET'])
+def get_exams_classes(request, exam_id):
+    # print(exam_id)
+    try:
+        exam = models.Exam.objects.get(id=exam_id)
+    except models.Exam.DoesNotExist:
+        return Response({"error": "Exam does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    classes = models.ExamPaper.objects.filter(exam=exam).annotate(class_name=F('subject__class_name__className'), class_id=F('subject__class_name_id')).values('class_name', 'class_id').distinct()
+    # print(classes)
+    return Response(classes, status=status.HTTP_200_OK)
+
+
+
+
+@api_view(['GET'])
+def get_students_with_marks(request, exam_id, class_id):
+
+    try:
+        class_name = models.Class.objects.get(id=class_id)
+    except models.Class.DoesNotExist:
+        return Response({"error": "Class does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+    try:
+        exam = models.Exam.objects.get(id=exam_id)
+    except models.Exam.DoesNotExist:
+        return Response({"error": "Exam does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    
+
+    obtained_marks = models.ObtainedMark.objects.filter(student__classOfAdmission=class_name, paper__exam=exam).annotate(
+        mark_id = F('id'),
+        enr_no = F('student__enrollmentId'),
+        student_name=Concat(
+            F('student__studentFirstName'),
+            Value(' '),
+            F('student__studentMiddleName'),
+            Value(' '),
+            F('student__studentLastName')
+        ),
+        father_name=Concat(
+            F('student__fatherFirstName'),
+            Value(' '),
+            F('student__fatherMiddleName'),
+            Value(' '),
+            F('student__fatherLastName')
+        ),
+        paper_name = F('paper__subject__subject__subjectName'),
+    ).values('mark_id', 'enr_no','student_id', 'student_name', 'father_name', 'paper_id', 'paper_name', 'marks').order_by('student_name')
+
+
+    # print(exam.exam_papers__subject.all())
+
+
+    # Initialize a defaultdict to group data by student_id
+    grouped_data = defaultdict(lambda: {
+        'enr_no': None,
+        'student_id': None,
+        'student_name': '',
+        'father_name': '',
+        'marks': []
+    })
+
+
+    # Iterate through the obtained marks and group by student_id
+    for mark in obtained_marks:
+        student_id = mark['student_id']
+        
+        # Add the basic student info if it's not already added
+        if grouped_data[student_id]['student_id'] is None:
+            grouped_data[student_id]['student_id'] = student_id
+            grouped_data[student_id]['enr_no'] = mark['enr_no']
+            grouped_data[student_id]['student_name'] = mark['student_name']
+            grouped_data[student_id]['father_name'] = mark['father_name']
+        
+        # Append the paper data to the exam_papers list
+        grouped_data[student_id]['marks'].append({
+            'paper_id': mark['paper_id'],
+            'paper_name': mark['paper_name'],
+            'mark_id': mark['mark_id'],
+            'marks': mark['marks']
+        })
+
+    # import pprint
+    # pprint.pprint()
+    response_data = list(grouped_data.values())
+
+    return Response(response_data, status=status.HTTP_200_OK)
+
+
+
+
+
+@api_view(['GET'])
+def get_subjects_for_this_exam(request, exam_id, class_id):
+    from .utils import get_subjects_for_exam
+    this_class_papers = get_subjects_for_exam(request, exam_id, class_id)
+    # print(this_class_papers)
+    if not this_class_papers:
+        return Response({"error": "No subjects found for this class"}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(this_class_papers, status=status.HTTP_200_OK)
+
+
+
+
+
+@api_view(['GET'])
+def get_students_for_marks_entry(request,exam_id, class_id):
+
+    class_name = get_object_or_404(models.Class, id=class_id)
+
+    try:
+        students = models.Student.objects.filter(classOfAdmission=class_name)
+    except models.Student.DoesNotExist:
+        return Response({"message": "Students doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+    exam = get_object_or_404(models.Exam, id=exam_id)
+
+    try:
+        exam_papers = models.ExamPaper.objects.filter(exam=exam)
+    except models.ExamPaper.DoesNotExist:
+        return Response({"message": "Exam Papers doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    for student in students:
+        for paper in exam_papers:
+            try:
+                mark = models.ObtainedMark.objects.get(student=student, paper=paper)
+            except models.ObtainedMark.DoesNotExist:
+                models.ObtainedMark.objects.create(student=student, paper=paper, marks=0)
+                
+
+
+    obtained_marks = models.ObtainedMark.objects.filter(student__classOfAdmission=class_name, paper__exam=exam).annotate(
+        mark_id = F('id'),
+        enr_no = F('student__enrollmentId'),
+        student_name=Concat(
+            F('student__studentFirstName'),
+            Value(' '),
+            F('student__studentMiddleName'),
+            Value(' '),
+            F('student__studentLastName')
+        ),
+        father_name=Concat(
+            F('student__fatherFirstName'),
+            Value(' '),
+            F('student__fatherMiddleName'),
+            Value(' '),
+            F('student__fatherLastName')
+        ),
+        paper_name = F('paper__subject__subject__subjectName'),
+        paper_full_marks = F('paper__full_marks'),
+        paper_pass_marks = F('paper__pass_marks'),
+
+    ).values('mark_id', 'enr_no','student_id', 'student_name', 'father_name', 'paper_id', 'paper_name','paper_full_marks','paper_pass_marks', 'marks').order_by('student_name')
+
+
+    response = {}
+
+    for mark in obtained_marks:
+        if mark['student_id'] not in response:
+            response[mark['student_id']] = {
+                'student_id':mark['student_id'],
+                'enr_no': mark['enr_no'],
+                'student_name': mark['student_name'],
+                'father_name': mark['father_name'],
+                'marks': []
+            }
+        response[mark['student_id']]['marks'].append({
+            'paper_id': mark['paper_id'],
+            'paper_name': mark['paper_name'],
+            'mark_id': mark['mark_id'],
+            'marks': mark['marks'],
+            'paper_full_marks': mark['paper_full_marks'],
+            'paper_pass_marks': mark['paper_pass_marks'],
+        })
+
+    # print(list(response.values()))
+    final_response = list(response.values())
+
+
+    return Response(final_response, status=status.HTTP_200_OK)
+
+
+
+
+@api_view(['POST'])
+def update_marks(request):
+
+    # print(request.data)
+    # {'student_id': 47, 'enr_no': 'ENR-EE45D3C93C', 'student_name': 'Amanda Troy Gonzalez', 'father_name': 'Christopher Jesse Evans', 'marks': [{'paper_id': 2, 'paper_name': 'Nepali', 'mark_id': 175, 'marks': '10', 'paper_full_marks': 100, 'paper_pass_marks': 40}, {'paper_id': 3, 'paper_name': 'Computer Science', 'mark_id': 176, 'marks': '20', 'paper_full_marks': 50, 'paper_pass_marks': 20}]}
+
+    student = get_object_or_404(models.Student, id=request.data['student_id'])
+    for paper in request.data['marks']:
+        exam_paper = get_object_or_404(models.ExamPaper, id=paper['paper_id'])
+
+        mark = get_object_or_404(models.ObtainedMark, student=student, paper=exam_paper)
+        mark.marks = paper['marks']
+        mark.save()
+
+
+    return Response({"message": "Marks updated successfully"}, status=status.HTTP_200_OK)
+
+
+
+
+
 
 
 

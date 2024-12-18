@@ -112,13 +112,13 @@ class SchoolSerializer(serializers.HyperlinkedModelSerializer):
 class StudentSerializer(serializers.HyperlinkedModelSerializer):
     # rollNo = serializers.IntegerField(read_only=True)  # Add rollNo as a read-only field
     id = serializers.IntegerField(read_only=True)
-    # classOfAdmission = serializers.PrimaryKeyRelatedField() #need to change
+    classOfAdmission = serializers.PrimaryKeyRelatedField(queryset=Class.objects.all())
 
 
 
     class Meta:
         model = Student
-        fields = '__all__'
+        fields = ['id', 'classOfAdmission'] + [field.name for field in Student._meta.fields if field.name not in ['id', 'classOfAdmission']]
 
 
 
@@ -398,6 +398,10 @@ class ConfigureExamPaperSerializer(serializers.Serializer):
 
 
 
+class ObtainedMarkPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ObtainedMark
+        fields = '__all__'
 
 
 

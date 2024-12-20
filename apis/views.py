@@ -904,6 +904,85 @@ def update_marks(request):
 
 
 
+@api_view(['GET'])
+def get_student_by_enr_no(request,exam_id, class_id, enr_no):
+
+    class_name = get_object_or_404(models.Class, id=class_id)
+
+    try:
+        students = models.Student.objects.filter(classOfAdmission=class_name)
+    except models.Student.DoesNotExist:
+        return Response({"message": "Students doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+    exam = get_object_or_404(models.Exam, id=exam_id)
+
+    try:
+        exam_papers = models.ExamPaper.objects.filter(exam=exam)
+    except models.ExamPaper.DoesNotExist:
+        return Response({"message": "Exam Papers doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    for student in students:
+        for paper in exam_papers:
+            try:
+                mark = models.ObtainedMark.objects.get(student=student, paper=paper)
+            except models.ObtainedMark.DoesNotExist:
+                models.ObtainedMark.objects.create(student=student, paper=paper, marks=0)
+                
+
+
+    obtained_marks = models.ObtainedMark.objects.filter(student__classOfAdmission=class_name, student__enrollmentId=enr_no, paper__exam=exam).annotate(
+        mark_id = F('id'),
+        enr_no = F('student__enrollmentId'),
+        student_name=Concat(
+            F('student__studentFirstName'),
+            Value(' '),
+            F('student__studentMiddleName'),
+            Value(' '),
+            F('student__studentLastName')
+        ),
+        father_name=Concat(
+            F('student__fatherFirstName'),
+            Value(' '),
+            F('student__fatherMiddleName'),
+            Value(' '),
+            F('student__fatherLastName')
+        ),
+        paper_name = F('paper__subject__subject__subjectName'),
+        paper_full_marks = F('paper__full_marks'),
+        paper_pass_marks = F('paper__pass_marks'),
+
+    ).values('mark_id', 'enr_no','student_id', 'student_name', 'father_name', 'paper_id', 'paper_name','paper_full_marks','paper_pass_marks', 'marks').order_by('student_name')
+
+
+    response = {}
+
+    for mark in obtained_marks:
+        if mark['student_id'] not in response:
+            response[mark['student_id']] = {
+                'student_id':mark['student_id'],
+                'enr_no': mark['enr_no'],
+                'student_name': mark['student_name'],
+                'father_name': mark['father_name'],
+                'marks': []
+            }
+        response[mark['student_id']]['marks'].append({
+            'paper_id': mark['paper_id'],
+            'paper_name': mark['paper_name'],
+            'mark_id': mark['mark_id'],
+            'marks': mark['marks'],
+            'paper_full_marks': mark['paper_full_marks'],
+            'paper_pass_marks': mark['paper_pass_marks'],
+        })
+
+    # print(list(response.values()))
+    final_response = list(response.values())
+
+
+    return Response(final_response, status=status.HTTP_200_OK)
+
+
+
 
 
 

@@ -228,6 +228,9 @@ class Student(models.Model):
     studentMiddleName = models.CharField(max_length=50, null=True, blank=True)
     transferCertificate = models.CharField(max_length=50, null=True, blank=True)
     enrollmentId = models.CharField(max_length=20, unique=True, editable=False)
+    student_full_name = models.CharField(max_length=200, null=True, blank=True)
+    father_full_name = models.CharField(max_length=200, null=True, blank=True)
+    student_father_combined_name = models.CharField(max_length=400, null=True, blank=True)
 
     def save(self, *args, **kwargs):
 
@@ -235,6 +238,10 @@ class Student(models.Model):
         if not self.enrollmentId:
             # Generate a unique enrollmentId based on UUID
             self.enrollmentId = f'ENR-{uuid.uuid4().hex[:10].upper()}'
+
+        self.student_full_name = f"{self.studentFirstName} {self.studentMiddleName} {self.studentLastName}"
+        self.father_full_name = f"{self.fatherFirstName} {self.fatherMiddleName} {self.fatherLastName}"
+        self.student_father_combined_name = f"{self.student_full_name} {self.father_full_name}"
         
         super(Student, self).save(*args, **kwargs)
 
@@ -242,15 +249,6 @@ class Student(models.Model):
         return f"{self.studentFirstName} {self.studentMiddleName} {self.studentLastName}"
     
 
-
-    @property
-    def full_name(self):
-        return f"{self.studentFirstName} {self.studentMiddleName} {self.studentLastName}"
-    
-
-    @property
-    def father_full_name(self):
-        return f"{self.fatherFirstName} {self.fatherMiddleName} {self.fatherLastName}"
 
 
 

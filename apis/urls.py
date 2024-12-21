@@ -75,5 +75,10 @@ urlpatterns = [
     path('update_marks/', update_marks, name="update_marks"),
     path('get_student_by_enr_no/<int:exam_id>/<int:class_id>/<enr_no>/', get_student_by_enr_no, name="get_student_by_enr_no"),
 
+
+    #result
+    path('get_student_report/<int:exam_id>/<search_key>/', get_student_report, name="get_student_report"),
+    path('get_marks/<int:exam_id>/<int:class_id>/', get_marks, name="get_marks"),
+
 ]
 urlpatterns+=router.urls

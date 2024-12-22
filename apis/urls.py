@@ -80,5 +80,12 @@ urlpatterns = [
     path('get_student_report/<int:exam_id>/<search_key>/', get_student_report, name="get_student_report"),
     path('get_marks/<int:exam_id>/<int:class_id>/', get_marks, name="get_marks"),
 
+
+
+    #fees
+    path('get_months/', get_months, name="get_months"),
+    path('get_new_receipt_no/', get_new_receipt_no, name="get_new_receipt_no"),
+    path('get_student_for_receipt/<enr_no>/', get_student_for_receipt, name="get_student_for_receipt"),
+
 ]
 urlpatterns+=router.urls

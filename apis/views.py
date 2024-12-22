@@ -1104,9 +1104,34 @@ def get_marks(request,exam_id, class_id):
 
 
 
+@api_view(['GET'])
+def get_months(request):
+    months = models.Month.objects.all()
+    return Response(list(months.values()), status=status.HTTP_200_OK)
 
 
 
 
+@api_view(['GET'])
+def get_new_receipt_no(request):
+    receipt_no = models.Receipt.get_new_receipt_no()
+    return Response(receipt_no, status=status.HTTP_200_OK)
+
+
+
+@api_view(['GET'])
+def get_student_for_receipt(request, enr_no):
+
+    try:
+        student = models.Student.objects.annotate(
+            Roll_No = F('id'),
+            Student_Name = F('student_full_name'),
+            Father_Name = F('father_full_name'),
+            Class_Name = F('classOfAdmission__className'),
+        ).values('id','Student_Name', 'Class_Name',  'Father_Name','Roll_No').get(enrollmentId=enr_no)
+    except models.Student.DoesNotExist:
+        return Response({"message": "Student doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(student, status=status.HTTP_200_OK)
 
 

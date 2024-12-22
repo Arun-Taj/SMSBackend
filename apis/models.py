@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 import uuid
+from datetime import datetime
 
 
 class AdminUserManager(BaseUserManager):
@@ -175,6 +176,7 @@ class Class(models.Model):
 
 
 class Student(models.Model):
+    rollNo = models.IntegerField(null=True, blank=True, unique=True)
     school = models.ForeignKey(School, on_delete=models.CASCADE, null=True)
     aadharNumber = models.CharField(max_length=15, null=True, blank=True)
     alternatePhoneNumber = models.CharField(max_length=10, null=True, blank=True)
@@ -232,8 +234,21 @@ class Student(models.Model):
     father_full_name = models.CharField(max_length=200, null=True, blank=True)
     student_father_combined_name = models.CharField(max_length=400, null=True, blank=True)
 
+
+    def get_new_roll_no(self):
+        try:
+            last_roll_no = Student.objects.filter(school=self.school, classOfAdmission=self.classOfAdmission).count()
+            return last_roll_no + 1
+        except Exception as e:
+            return None
+
     def save(self, *args, **kwargs):
 
+        if not self.rollNo:
+            try:
+                self.rollNo = self.get_new_roll_no()
+            except Exception as e:
+                self.rollNo = None
 
         if not self.enrollmentId:
             # Generate a unique enrollmentId based on UUID
@@ -376,6 +391,51 @@ class ObtainedMark(models.Model):
 
 
 
+
+
+
+class Month(models.Model):
+    name = models.CharField(max_length=50, null=True, blank=True, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+
+
+class Receipt(models.Model):
+    receipt_no = models.CharField(max_length=50, null=True, blank=True, unique=True)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='receipts')
+    created_at = models.DateField()
+    months = models.ManyToManyField(Month, related_name='receipts')
+    admission_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2)
+    monthly_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2)
+    registration_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2)
+    fines = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2)
+    transport_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2)
+    old_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2)
+    late_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2)
+    other_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2)
+
+    total_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2) #gross total
+    concession_percentage = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2) #discount in percentage
+    concession_amount = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2) #total_fees * concession_percentage i.e. total discount
+
+    net_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2) #total_fees - concession_amount i.e. total to be paid
+    deposit_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2) #paid amount
+    payment_mode = models.CharField(max_length=50, null=True, blank=True)
+
+    remaining_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2)
+
+    remarks = models.TextField(null=True, blank=True)
+
+    #auto generate receipt no serially, follow this pattern, like REC-Date-Serial
+    @classmethod
+    def get_new_receipt_no(cls, *args, **kwargs):
+        date = datetime.now().strftime("%Y-%m-%d")
+        serial = cls.objects.count() + 1
+        receipt_no = f"{date}{serial}".replace('-', '')
+        return f"REC-{receipt_no}"
 
 
 

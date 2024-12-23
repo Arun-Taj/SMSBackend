@@ -1169,11 +1169,50 @@ def create_receipt(request):
 
 
 
+@api_view(['GET'])
+def get_receipts(request):
+
+    receipts = models.Receipt.objects.select_related('student').prefetch_related('months').annotate(
+        receiptNo = F('receipt_no'),
+        studentName = F('student__student_full_name'),
+        className = F('student__classOfAdmission__className'),
+        enrollmentId = F('student__enrollmentId'),
+        date = F('receipt_date'),
+        description = F('remarks'),
+        remainingFee = F('remaining_fees'),
+        paid = F('deposit_fees'),
+        netFees = F('net_fees'),
+
+    ).values(
+        'id',
+        'receiptNo',
+        'studentName',
+        'className',
+        'enrollmentId',
+        'date',
+        'description',
+        'remainingFee',
+        'paid',
+        'netFees',
+        'remarks'
+    ).order_by('-date')
+
+    return Response(list(receipts), status=status.HTTP_200_OK)
 
 
 
 
+@api_view(['DELETE'])
+def delete_receipt(request):
+    # print(request.data)
+    for receipt_id in request.data:
+        try:
+            receipt = models.Receipt.objects.get(id=receipt_id)
+        except models.Receipt.DoesNotExist:
+            return Response({"message": f"Receipt with id {receipt_id} doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+        receipt.delete()
 
+    return Response({"message": "Receipt deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
 
 

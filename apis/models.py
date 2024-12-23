@@ -407,7 +407,7 @@ class Receipt(models.Model):
     receipt_no = models.CharField(max_length=50, null=True, blank=True, unique=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='receipts')
     receipt_date = models.DateField(null=True, blank=True)
-    months = models.ManyToManyField(Month, related_name='receipts')
+    months = models.ManyToManyField(Month, related_name='receipts',  blank=True)
     admission_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2)
     monthly_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2)
     registration_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2)

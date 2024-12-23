@@ -406,7 +406,7 @@ class Month(models.Model):
 class Receipt(models.Model):
     receipt_no = models.CharField(max_length=50, null=True, blank=True, unique=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='receipts')
-    created_at = models.DateField()
+    receipt_date = models.DateField(null=True, blank=True)
     months = models.ManyToManyField(Month, related_name='receipts')
     admission_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2)
     monthly_fees = models.DecimalField(null=True, blank=True, max_digits=20, decimal_places=2)
@@ -429,6 +429,8 @@ class Receipt(models.Model):
 
     remarks = models.TextField(null=True, blank=True)
 
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
     #auto generate receipt no serially, follow this pattern, like REC-Date-Serial
     @classmethod
     def get_new_receipt_no(cls, *args, **kwargs):
@@ -437,6 +439,9 @@ class Receipt(models.Model):
         receipt_no = f"{date}{serial}".replace('-', '')
         return f"REC-{receipt_no}"
 
+
+    def __str__(self) -> str:
+        return f"{self.receipt_no}"
 
 
 

@@ -1128,10 +1128,56 @@ def get_student_for_receipt(request, enr_no):
             Student_Name = F('student_full_name'),
             Father_Name = F('father_full_name'),
             Class_Name = F('classOfAdmission__className'),
-        ).values('id','Student_Name', 'Class_Name',  'Father_Name','Roll_No').get(enrollmentId=enr_no)
+            monthly_fee = F('classOfAdmission__monthlyFees'),
+        ).values('id','Student_Name', 'Class_Name',  'Father_Name','Roll_No', 'monthly_fee').get(enrollmentId=enr_no)
     except models.Student.DoesNotExist:
         return Response({"message": "Student doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(student, status=status.HTTP_200_OK)
+
+
+
+
+
+@api_view(['POST'])
+def create_receipt(request):
+    data = request.data
+
+    if not data:
+        return Response({"message": "Failed to create receipt"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        student = models.Student.objects.get(id=data.get('student'))
+    except models.Student.DoesNotExist:
+        return Response({"message": "Student doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    months = data.get('months')
+    data = {key: value for key, value in data.items() if key not in ['student', 'months']}
+    receipt = models.Receipt.objects.create(**data, student=student)
+
+    for month in months:
+        receipt.months.add(month)
+
+        
+    response = {
+        "message": "Receipt created successfully",
+        "receipt_no": data.get('receipt_no'),
+    }
+    return Response(response, status=status.HTTP_201_CREATED)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

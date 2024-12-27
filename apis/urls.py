@@ -90,5 +90,11 @@ urlpatterns = [
     path('get_receipts/', get_receipts, name="get_receipts"),
     path('delete_receipt/', delete_receipt, name="delete_receipt"),
 
+
+
+    #attendence
+    path('get_students_for_attendance/<date>/<int:class_id>/', get_students_for_attendance, name="get_students_for_attendance"),
+    path('update_attendance/', update_attendance, name="update_attendance"),
+
 ]
 urlpatterns+=router.urls

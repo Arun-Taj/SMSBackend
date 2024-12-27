@@ -445,7 +445,23 @@ class Receipt(models.Model):
 
 
 
+ATTENDANCE_STATUS = [
+    ('P', 'Present'),
+    ('A', 'Absent'),
+    ('L', 'Leave'),
+]
+class Attendance(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='attendances')
+    date = models.DateField(null=True, blank=True)
+    status = models.CharField(choices=ATTENDANCE_STATUS, max_length=50, null=True, blank=True)
 
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        unique_together = ('student', 'date')
+
+    def __str__(self) -> str:
+        return f"{self.student} -> {self.date}"
 
 
 

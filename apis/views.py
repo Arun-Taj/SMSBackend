@@ -1218,5 +1218,103 @@ def delete_receipt(request):
 
 
 
+@api_view(['GET'])
+def get_students_for_attendance(request, date, class_id):
+    from datetime import datetime
+    date = datetime.strptime(date, '%Y-%m-%d').date()
+
+    try:
+        attendances = models.Attendance.objects.filter(date=date, student__classOfAdmission__id=class_id).annotate(
+                    rollNo = F('student_id'),
+                    enrollmentId = F('student__enrollmentId'),
+                    name = F('student__student_full_name'),
+                    fatherName = F('student__father_full_name'),
+                    gender = F('student__gender'),
+
+                ).values(
+                    'id',
+                    'rollNo',
+                    'enrollmentId',
+                    'name',
+                    'fatherName',
+                    'gender',
+                    'status'
+                )    
+    except models.Attendance.DoesNotExist:
+        return Response({"message": "Attendance doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    if attendances.exists():
+        return Response(list(attendances), status=status.HTTP_200_OK)
+    
+
+    try:
+        students = models.Student.objects.filter(classOfAdmission__id=class_id)
+    except models.Class.DoesNotExist:
+        return Response({"message": "Class doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    for student in students:
+        try:
+            models.Attendance.objects.create(
+                student=student,
+                date=date,
+                status=''
+            )
+        except Exception as e:
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    
+
+    try:    
+        attendances = models.Attendance.objects.filter(date=date, student__classOfAdmission__id=class_id).annotate(
+            rollNo = F('student_id'),
+            enrollmentId = F('student__enrollmentId'),
+            name = F('student__student_full_name'),
+            fatherName = F('student__father_full_name'),
+            gender = F('student__gender'),
+
+        ).values(
+            'id',
+            'rollNo',
+            'enrollmentId',
+            'name',
+            'fatherName',
+            'gender',
+            'status'
+        )
+    except Exception as e:
+        return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    
+
+
+    return Response(list(attendances), status=status.HTTP_200_OK)
+
+
+
+
+
+@api_view(['POST'])
+def update_attendance(request):
+    attendances = request.data
+    for attendance in attendances:
+        try:
+            models.Attendance.objects.filter(id=attendance['id']).update(status=attendance['status'])
+        except Exception as e:
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+    return Response({"message": "Attendance updated successfully"}, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+
+
 
 

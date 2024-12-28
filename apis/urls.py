@@ -95,6 +95,8 @@ urlpatterns = [
     #attendence
     path('get_students_for_attendance/<date>/<int:class_id>/', get_students_for_attendance, name="get_students_for_attendance"),
     path('update_attendance/', update_attendance, name="update_attendance"),
+    path('get_class_attendance_by_month/<int:year>/<int:month>/<int:class_id>/', get_class_attendance_by_month, name="get_class_attendance_by_month"),
+
 
 ]
 urlpatterns+=router.urls

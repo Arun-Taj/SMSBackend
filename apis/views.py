@@ -1365,6 +1365,73 @@ def get_class_attendance_by_month(request, year, month, class_id):
 
 
 
+@api_view(['GET'])
+def get_class_attendance_by_month_search_term(request, year, month, search_type, search_term):
+    if search_type == '' or search_term == '':
+        return Response({"message": "Search type and search term are required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        if search_type == 'name':
+            attendances = models.Attendance.objects.filter(student__student_full_name__icontains = search_term, date__year=year, date__month=month)
+
+        elif search_type == 'enrNo':
+            attendances = models.Attendance.objects.filter(student__enrollmentId = search_term, date__year=year, date__month=month)
+        else:
+            return Response({"message": "Invalid search type"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        attendances = attendances.annotate(
+                rollNo = F('student_id'),
+                name = F('student__student_full_name'),
+                className = F('student__classOfAdmission__className'),
+                ).values(
+                    'rollNo',
+                    'name',
+                    'className',
+                    'status',
+                    'date',
+                
+                ).order_by('date')
+
+    except models.Attendance.DoesNotExist:
+        return Response({"message": "Attendance doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+    if not attendances.exists():
+        return Response({"message": "Attendance doesn't exist for this month"}, status=status.HTTP_404_NOT_FOUND)
+
+    response = {}
+    for attendance in attendances:
+        roll_no = attendance['rollNo']
+        day = attendance['date'].day  # Extract the day from the date
+
+        if roll_no not in response:
+            response[roll_no] = {
+                "rollNo": roll_no,
+                "name": attendance['name'],
+                "className": attendance['className'],
+                "status": {
+                    day: attendance['status']
+                },
+            }
+        else:
+            # Add or update the status for the specific day
+            response[roll_no]['status'][day] = attendance['status']
+       
+
+    
+    for rollNo in response:
+        response[rollNo]['totalP'] = list(response[rollNo]['status'].values()).count('P')
+        response[rollNo]['totalA'] = list(response[rollNo]['status'].values()).count('A')
+        response[rollNo]['totalL'] = list(response[rollNo]['status'].values()).count('L')
+        
+
+
+    return Response(list(response.values()), status=status.HTTP_200_OK)
+    # return Response("ok", status=status.HTTP_200_OK)
+
+
+
 
 
 

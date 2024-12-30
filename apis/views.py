@@ -1433,6 +1433,89 @@ def get_class_attendance_by_month_search_term(request, year, month, search_type,
 
 
 
+@api_view(['GET'])
+def get_employees_for_attendance(request, date):
+    from datetime import datetime
+    date = datetime.strptime(date, '%Y-%m-%d').date()
+
+    try:
+        attendances = models.EmployeeAttendance.objects.filter(date=date).annotate(
+                    enrollmentId = F('employee__employeeId'),
+                    name = F('employee__employee_full_name'),
+                    fatherName = F('employee__father_full_name'),
+                    role = F('employee__selectRole'),
+                ).values(
+                    'id',
+                    'enrollmentId',
+                    'name',
+                    'fatherName',
+                    'role',
+                    'status'
+                )    
+    except models.EmployeeAttendance.DoesNotExist:
+        return Response({"message": "EmployeeAttendance doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    if attendances.exists():
+        return Response(list(attendances), status=status.HTTP_200_OK)
+    
+
+    try:
+        employees = models.Employee.objects.all()
+    except models.Employee.DoesNotExist:
+        return Response({"message": "Employee doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    for employee in employees:
+        try:
+            models.EmployeeAttendance.objects.create(
+                employee=employee,
+                date=date,
+                status=''
+            )
+        except Exception as e:
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    
+
+    try:    
+        attendances = models.EmployeeAttendance.objects.filter(date=date).annotate(
+                    enrollmentId = F('employee__employeeId'),
+                    name = F('employee__employee_full_name'),
+                    fatherName = F('employee__father_full_name'),
+                    role = F('employee__selectRole'),
+                ).values(
+                    'id',
+                    'enrollmentId',
+                    'name',
+                    'fatherName',
+                    'role',
+                    'status'
+                )    
+    except Exception as e:
+        return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    
+
+
+    return Response(list(attendances), status=status.HTTP_200_OK)
+
+
+
+@api_view(['POST'])
+def update_employee_attendance(request):
+    attendances = request.data
+    for attendance in attendances:
+        try:
+            models.EmployeeAttendance.objects.filter(id=attendance['id']).update(status=attendance['status'])
+        except Exception as e:
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+    return Response({"message": "Employee Attendance updated successfully"}, status=status.HTTP_200_OK)
+
+
+
 
 
 

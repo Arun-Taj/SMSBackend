@@ -134,6 +134,8 @@ class Employee(models.Model):
     complementarySubject = models.CharField(max_length=50, null=True, blank=True)
     remarks = models.TextField(null=True, blank=True)
     employeeId = models.CharField(max_length=20, unique=True, editable=False)
+    employee_full_name = models.CharField(max_length=200, null=True, blank=True)
+    father_full_name = models.CharField(max_length=200, null=True, blank=True)
 
 
     def save(self, *args, **kwargs):
@@ -141,6 +143,9 @@ class Employee(models.Model):
             # Generate a unique employeeId based on UUID
             self.employeeId = f'EMP-{uuid.uuid4().hex[:10].upper()}'
         
+        self.employee_full_name = f"{self.employeeFirstName} {self.employeeMiddleName} {self.employeeLastName}"
+        self.father_full_name = f"{self.fatherFirstName} {self.fatherMiddleName} {self.fatherLastName}"
+
         super(Employee, self).save(*args, **kwargs)
 
     def __str__(self) -> str:
@@ -462,6 +467,21 @@ class Attendance(models.Model):
 
     def __str__(self) -> str:
         return f"{self.student} -> {self.date}"
+    
+
+
+class EmployeeAttendance(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='attendances')
+    date = models.DateField(null=True, blank=True)
+    status = models.CharField(choices=ATTENDANCE_STATUS, max_length=50, null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        unique_together = ('employee', 'date')
+
+    def __str__(self) -> str:
+        return f"{self.employee} -> {self.date}"
 
 
 

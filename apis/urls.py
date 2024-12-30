@@ -98,6 +98,8 @@ urlpatterns = [
     path('get_class_attendance_by_month/<int:year>/<int:month>/<int:class_id>/', get_class_attendance_by_month, name="get_class_attendance_by_month"),
     path('get_class_attendance_by_month_search_term/<int:year>/<int:month>/<str:search_type>/<str:search_term>/', get_class_attendance_by_month_search_term, name="get_class_attendance_by_month_search_term"),
 
+    path('get_employees_for_attendance/<str:date>/', get_employees_for_attendance, name="get_employees_for_attendance"),
+    path('update_employee_attendance/', update_employee_attendance, name="update_employee_attendance"),
 
 ]
 urlpatterns+=router.urls

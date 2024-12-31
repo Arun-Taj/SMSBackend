@@ -1517,6 +1517,135 @@ def update_employee_attendance(request):
 
 
 
+@api_view(['GET'])
+def get_employee_attendance_by_month(request, year, month):
+    
+    try:
+        attendances = models.EmployeeAttendance.objects.filter(date__year=year, date__month=month).annotate(
+            employeeId = F('employee__employeeId'),
+            name = F('employee__employee_full_name'),
+            role = F('employee__selectRole'),
+        ).values(
+            'id',
+            'employeeId',
+            'name',
+            'role',
+            'status',
+            'date',
+         
+        ).order_by('date')
+    except models.EmployeeAttendance.DoesNotExist:
+        return Response({"message": "EmployeeAttendance doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not attendances.exists():
+        return Response({"message": "Attendance doesn't exist for this month"}, status=status.HTTP_404_NOT_FOUND)
+
+    response = {}
+    for attendance in attendances:
+        employeeId = attendance['employeeId']
+        day = attendance['date'].day  # Extract the day from the date
+
+        if employeeId not in response:
+            response[employeeId] = {
+                "employeeId": employeeId,
+                "name": attendance['name'],
+                "role": attendance['role'],
+                "status": {
+                    day: attendance['status']
+                },
+            }
+        else:
+            # Add or update the status for the specific day
+            response[employeeId]['status'][day] = attendance['status']
+       
+
+    
+    for employeeId in response:
+        response[employeeId]['totalP'] = list(response[employeeId]['status'].values()).count('P')
+        response[employeeId]['totalA'] = list(response[employeeId]['status'].values()).count('A')
+        response[employeeId]['totalL'] = list(response[employeeId]['status'].values()).count('L')
+        
+
+
+    return Response(list(response.values()), status=status.HTTP_200_OK)
+
+
+
+
+@api_view(['GET'])
+def get_employee_attendance_by_month_search_term(request, year, month, search_type, search_term):
+    if search_type == '' or search_term == '':
+        return Response({"message": "Search type and search term are required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    filters = {
+        'date__year': year,
+        'date__month': month
+    }
+    
+    if search_type == 'name':
+        filters['employee__employee_full_name__icontains'] = search_term
+    elif search_type == 'empId':
+        filters['employee__employeeId'] = search_term
+    else:
+        return Response({"message": "Invalid search type"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        attendances = models.EmployeeAttendance.objects.filter(**filters).annotate(
+            employeeId=F('employee__employeeId'),
+            name=F('employee__employee_full_name'),
+            role=F('employee__selectRole'),
+        ).values(
+            'id',
+            'employeeId',
+            'name',
+            'role',
+            'status',
+            'date',
+        ).order_by('date')
+    except models.EmployeeAttendance.DoesNotExist:
+        return Response({"message": "Attendance doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+    if not attendances.exists():
+        return Response({"message": "Attendance doesn't exist for this month"}, status=status.HTTP_404_NOT_FOUND)
+
+    response = {}
+    for attendance in attendances:
+        employeeId = attendance['employeeId']
+        day = attendance['date'].day  # Extract the day from the date
+
+        if employeeId not in response:
+            response[employeeId] = {
+                "employeeId": employeeId,
+                "name": attendance['name'],
+                "role": attendance['role'],
+                "status": {
+                    day: attendance['status']
+                },
+            }
+        else:
+            # Add or update the status for the specific day
+            response[employeeId]['status'][day] = attendance['status']
+       
+
+    
+    for employeeId in response:
+        response[employeeId]['totalP'] = list(response[employeeId]['status'].values()).count('P')
+        response[employeeId]['totalA'] = list(response[employeeId]['status'].values()).count('A')
+        response[employeeId]['totalL'] = list(response[employeeId]['status'].values()).count('L')
+        
+
+
+    return Response(list(response.values()), status=status.HTTP_200_OK)
+    # return Response("ok", status=status.HTTP_200_OK)
+
+
+
+
+
+
+
 
 
 

@@ -520,6 +520,15 @@ def delete_income_expense(request, id):
 @api_view(['GET'])
 def get_exam_sessions(request):
     exam_sessions = models.ExamSession.objects.values()
+    if not exam_sessions:
+        from datetime import datetime
+        current_year = datetime.now().year
+        another_year = current_year + 1
+        models.ExamSession.objects.create(name=f"{current_year}-{another_year}")
+
+    exam_sessions = models.ExamSession.objects.values()
+
+
     return Response(exam_sessions)
 
 

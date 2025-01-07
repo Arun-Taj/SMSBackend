@@ -350,23 +350,30 @@ def get_teachers_for_config(request):
 @api_view(['POST'])
 def assign_subjects_to_class(request):
     data = request.data
-    serializer = serializers.ClassSubjectSerializerForConfig(data=data)
+    # print(data)
+    """
+    {'class_id': 1, 'subjects': [{'subjectId': '2', 'teacherId': '1'}]}
+    """
+    try:
+        class_name = models.Class.objects.get(id=data['class_id'])
+    except models.Class.DoesNotExist:
+        return Response({"error": "Class does not exist"}, status=status.HTTP_400_BAD_REQUEST)
     
-    if serializer.is_valid():
+    for item in data['subjects']:
         try:
-            saved_data = serializer.save()
-        except ValidationError as e:
-            # Extract error details
-            error_details = e.detail if hasattr(e, 'detail') else str(e)
-            print(error_details)
-            return Response({"error": error_details}, status=status.HTTP_400_BAD_REQUEST)
+            subject = models.Subject.objects.get(id=item['subjectId'])
+            subject_teacher = models.Employee.objects.get(id=item['teacherId'])
+        except models.Subject.DoesNotExist or models.Employee.DoesNotExist:
+            return Response({"error": "Subject or teacher does not exist"}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Serialize saved data for response
-        class_subject_serializer = serializers.ClassSubjectSerializer(saved_data, many=True)
-        return Response(class_subject_serializer.data, status=status.HTTP_201_CREATED)
-    else:
-        # Return validation errors from serializer
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            class_subject = models.ClassSubject.objects.get(subject=subject, class_name=class_name)
+            return Response({"error": f"Subject {subject.subjectName} already assigned to class {class_name.className}"}, status=status.HTTP_400_BAD_REQUEST)
+        except models.ClassSubject.DoesNotExist:
+            models.ClassSubject.objects.create(subject=subject, class_name=class_name, subject_teacher=subject_teacher)
+        
+            
+    return Response({"message": "Subjects assigned successfully"}, status=status.HTTP_201_CREATED)
 
 
 

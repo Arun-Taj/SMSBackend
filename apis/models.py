@@ -181,7 +181,7 @@ class Class(models.Model):
 
 
 class Student(models.Model):
-    rollNo = models.IntegerField(null=True, blank=True, unique=True)
+    rollNo = models.IntegerField(null=True, blank=True)
     school = models.ForeignKey(School, on_delete=models.CASCADE, null=True)
     aadharNumber = models.CharField(max_length=15, null=True, blank=True)
     alternatePhoneNumber = models.CharField(max_length=10, null=True, blank=True)
@@ -240,18 +240,19 @@ class Student(models.Model):
     student_father_combined_name = models.CharField(max_length=400, null=True, blank=True)
 
 
-    def get_new_roll_no(self):
+    @classmethod
+    def get_new_roll_no(cls, class_id):
         try:
-            last_roll_no = Student.objects.filter(school=self.school, classOfAdmission=self.classOfAdmission).count()
+            last_roll_no = cls.objects.filter(classOfAdmission_id=class_id).count()
             return last_roll_no + 1
         except Exception as e:
-            return None
+            raise Exception(f"Failed to get new roll number: {str(e)}")
 
     def save(self, *args, **kwargs):
-
-        if not self.rollNo:
+        if self.rollNo == None or kwargs['promoting'] == True:
+            del kwargs['promoting']
             try:
-                self.rollNo = self.get_new_roll_no()
+                self.rollNo = Student.get_new_roll_no(self.classOfAdmission_id)
             except Exception as e:
                 self.rollNo = None
 
@@ -266,7 +267,7 @@ class Student(models.Model):
         super(Student, self).save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return f"{self.studentFirstName} {self.studentMiddleName} {self.studentLastName}"
+        return f"Roll No. {self.rollNo} -> {self.studentFirstName} {self.studentMiddleName} {self.studentLastName}"
     
 
 

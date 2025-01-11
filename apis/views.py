@@ -23,34 +23,7 @@ from django.shortcuts import get_object_or_404
 
 
 
-# class CustomTokenBlacklistView(APIView):
-#     def post(self, request, *args, **kwargs):
-#         refresh_token = request.data.get('refresh')
-#         print("refresh",refresh_token)
 
-#         if not refresh_token:
-#             return JsonResponse({'detail': 'Refresh token is required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         try:
-#             # Check if the token is in outstanding tokens
-#             outstanding_token = OutstandingToken.objects.get(token=refresh_token)
-#             print("outstanding",outstanding_token)
-
-
-
-#             # Check if it's already blacklisted
-#             if not BlacklistedToken.objects.filter(token=outstanding_token).exists():
-#                 # Create a new blacklist entry
-#                 BlacklistedToken.objects.create(token=outstanding_token)
-#                 return JsonResponse({'detail': 'Token blacklisted successfully.'}, status=status.HTTP_205_RESET_CONTENT)
-#             else:
-#                 return JsonResponse({'detail': 'Token is already blacklisted.'}, status=status.HTTP_200_OK)
-
-#         except OutstandingToken.DoesNotExist:
-#             return JsonResponse({'detail': 'Outstanding token does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         except Exception as e:
-#             return JsonResponse({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 class CustomTokenBlacklistView(APIView):
     def post(self, request, *args, **kwargs):
         refresh_token = request.data.get('refresh')
@@ -142,6 +115,23 @@ class StudentViewSet(viewsets.ModelViewSet):
         return super().get_queryset().filter(school=self.request.user.school).order_by('studentFirstName')
     
 
+
+@api_view(["POST"])
+def promote_student(request):
+
+    try:
+        for student_data in request.data:
+            student_id = student_data['id']
+            student = models.Student.objects.get(id=student_id)
+            if student.classOfAdmission.id != int(student_data['classOfAdmission']):
+                print(student.student_full_name)
+                promoted_class = models.Class.objects.get(id=student_data['classOfAdmission'])
+                student.classOfAdmission = promoted_class
+                student.save(promoting=True)
+    except Exception as e:
+        return Response({"message": "Failed to promote students"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    return Response({"message": "Students promoted successfully"}, status=status.HTTP_200_OK)
 
 
 

@@ -26,6 +26,9 @@ urlpatterns = [
     path('logout/', CustomTokenBlacklistView.as_view(), name='token_blacklist'),
 
 
+    #roles
+    path('get_roles/', RoleListView.as_view(), name='get_roles'),
+
 
     #students
     path('students/promote/', promote_student, name='promote_student'),

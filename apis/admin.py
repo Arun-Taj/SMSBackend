@@ -20,3 +20,5 @@ admin.site.register(Month)
 admin.site.register(Receipt)
 admin.site.register(Attendance)
 admin.site.register(EmployeeAttendance)
+admin.site.register(Role)
+

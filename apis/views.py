@@ -19,7 +19,7 @@ from django.db.models.functions import Concat
 from collections import defaultdict
 from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
-
+from rest_framework.generics import ListAPIView
 
 
 
@@ -161,20 +161,25 @@ class EmployeeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            return super().get_queryset().filter(school=self.request.user.school).order_by('employeeFirstName')
+            if hasattr(self.request.user, 'school'):
+                return super().get_queryset().filter(school=self.request.user.school).order_by('employeeFirstName')
+            else:
+                return models.Employee.objects.none()  # or handle the error if necessary
         else:
-            # raise PermissionError('User is not authenticated')
             return models.Employee.objects.none()
-    
 
     def create(self, request, *args, **kwargs):
-        # print("creating, viewset")
-        # Manually handle creation to catch validation errors
+        print(request.data)
+        complementary_subjects = [int(subject_id) for subject_id in request.data['complementarySubjects'].split(",")]
+        request.data.pop('complementarySubjects', None)
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             print(serializer.errors)  # Log validation errors
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return super().create(request, *args, **kwargs)
+        employee = serializer.save()
+        employee.complementarySubjects.set(complementary_subjects)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 
 
@@ -260,6 +265,9 @@ class ClassSubjectViewSet(viewsets.ModelViewSet):
 
 
 
+class RoleListView(ListAPIView):
+    queryset = models.Role.objects.all()
+    serializer_class = serializers.RoleSerializer
 
 @api_view(['GET'])
 def get_assigned_subject_classes(request):

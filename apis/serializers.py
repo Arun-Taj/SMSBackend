@@ -7,6 +7,11 @@ from rest_framework import status
 
 
 
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = '__all__'
+
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -132,7 +137,7 @@ class StudentSerializer(serializers.HyperlinkedModelSerializer):
 
     def save(self, *args, **kwargs):
         request = self.context.get("request")  # Get request from context
-      
+        print('photo' in self.validated_data, self.validated_data['photo'])
         if request:
             # If this is a new instance, set the school
             if self.instance is None:
@@ -149,14 +154,18 @@ class StudentSerializer(serializers.HyperlinkedModelSerializer):
 
 
 
-class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
+class EmployeeSerializer(serializers.ModelSerializer):
     school = serializers.PrimaryKeyRelatedField(read_only=True)
-    id = serializers.IntegerField(read_only=True)
-
+  
     class Meta:
         model = Employee
         fields = '__all__'
 
+
+       # Override to handle incoming 'complementarySubjects' as a comma-separated string
+
+
+    # def     
 
     def create(self, validated_data):
         # Assign the authenticated user's school to the employee on creation
@@ -217,14 +226,6 @@ class SimpleEmployeeSerializer(serializers.ModelSerializer):
         fields = ['id', 'full_name']
 
 
-# class ClassSubjectSerializer(serializers.ModelSerializer):
-#     class_name = ClassSerializer()  # Nested serializer for Class
-#     subject = SubjectSerializer()  # Nested serializer for Subject
-#     subject_teacher = SimpleEmployeeSerializer()  # Nested serializer for Employee
-
-#     class Meta:
-#         model = ClassSubject
-#         fields = ['id', 'class_name', 'subject', 'subject_teacher']
 
 class ClassSubjectSerializer(serializers.ModelSerializer):
     class_name = serializers.SerializerMethodField()  # Replace nested serializer

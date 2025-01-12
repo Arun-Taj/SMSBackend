@@ -89,6 +89,27 @@ class School(models.Model):
         return self.admin.username + " - " + self.tag_line
 
 
+class Subject(models.Model):
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='subjects')
+    subjectName = models.CharField(max_length=50, null=True, blank=True)
+   
+    class Meta:
+        unique_together = ('school', 'subjectName')
+
+
+    def __str__(self) -> str:
+        return f"{self.subjectName}-> {self.school}"
+    
+
+
+
+
+class Role(models.Model):
+    name = models.CharField(max_length=150, null=True, blank=True)
+
+    def __str__(self) -> str:
+        return self.name
+
 
 class Employee(models.Model):
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='employees')
@@ -102,7 +123,7 @@ class Employee(models.Model):
     phoneNumber = models.CharField(max_length=10, null=True, blank=True)
     alternatePhoneNumber = models.CharField(max_length=10, null=True, blank=True)
     email = models.CharField(max_length=50, null=True, blank=True)
-    selectRole = models.CharField(max_length=50, null=True, blank=True)
+    selectRole = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True)
     fatherFirstName = models.CharField(max_length=50, null=True, blank=True)
     fatherMiddleName = models.CharField(max_length=50, null=True, blank=True)
     fatherLastName = models.CharField(max_length=50, null=True, blank=True)
@@ -130,8 +151,8 @@ class Employee(models.Model):
     bioData = models.FileField(upload_to='documents/employees/', blank=True, null=True)
     educationDetails = models.TextField(null=True, blank=True)
     experience = models.TextField(null=True, blank=True)
-    mainSubject = models.CharField(max_length=50, null=True, blank=True)
-    complementarySubject = models.CharField(max_length=50, null=True, blank=True)
+    mainSubject = models.ForeignKey(Subject, on_delete=models.SET_NULL, null=True, related_name='employees_main_subject')
+    complementarySubjects = models.ManyToManyField(Subject, related_name='employees', blank=True)
     remarks = models.TextField(null=True, blank=True)
     employeeId = models.CharField(max_length=20, unique=True, editable=False)
     employee_full_name = models.CharField(max_length=200, null=True, blank=True)
@@ -263,9 +284,7 @@ class Student(models.Model):
         elif 'promoting' in kwargs.keys():
             self.update_roll_no()
             kwargs.pop('promoting')
-                
-        elif self.rollNo != kwargs.get('rollNo'):
-            self.update_roll_no()
+
 
         if not self.enrollmentId:
             # Generate a unique enrollmentId based on UUID
@@ -289,22 +308,6 @@ class Student(models.Model):
     
 
 
-
-
-
-
-
-class Subject(models.Model):
-    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='subjects')
-    subjectName = models.CharField(max_length=50, null=True, blank=True)
-   
-    class Meta:
-        unique_together = ('school', 'subjectName')
-
-
-    def __str__(self) -> str:
-        return f"{self.subjectName}-> {self.school}"
-    
 
 
 

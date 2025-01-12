@@ -29,6 +29,7 @@ urlpatterns = [
 
     #students
     path('students/promote/', promote_student, name='promote_student'),
+    path('students/<int:id>/update/', UpdateStudentView.as_view(), name='update_student'),
     
     
     

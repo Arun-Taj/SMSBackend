@@ -238,6 +238,7 @@ class Student(models.Model):
     student_full_name = models.CharField(max_length=200, null=True, blank=True)
     father_full_name = models.CharField(max_length=200, null=True, blank=True)
     student_father_combined_name = models.CharField(max_length=400, null=True, blank=True)
+    photo = models.ImageField(upload_to='student_photos', null=True, blank=True)
 
 
     @classmethod
@@ -248,13 +249,23 @@ class Student(models.Model):
         except Exception as e:
             raise Exception(f"Failed to get new roll number: {str(e)}")
 
+
+    def update_roll_no(self):
+        try:
+            self.rollNo = Student.get_new_roll_no(self.classOfAdmission_id)
+        except Exception as e:
+            self.rollNo = None
+
     def save(self, *args, **kwargs):
-        if self.rollNo == None or kwargs['promoting'] == True:
-            del kwargs['promoting']
-            try:
-                self.rollNo = Student.get_new_roll_no(self.classOfAdmission_id)
-            except Exception as e:
-                self.rollNo = None
+        if self.rollNo == None:
+            self.update_roll_no()
+        
+        elif 'promoting' in kwargs.keys():
+            self.update_roll_no()
+            kwargs.pop('promoting')
+                
+        elif self.rollNo != kwargs.get('rollNo'):
+            self.update_roll_no()
 
         if not self.enrollmentId:
             # Generate a unique enrollmentId based on UUID
@@ -265,6 +276,13 @@ class Student(models.Model):
         self.student_father_combined_name = f"{self.student_full_name} {self.father_full_name}"
         
         super(Student, self).save(*args, **kwargs)
+
+
+    def delete(self, *args, **kwargs):
+        if self.photo:
+            self.photo.delete()
+        super().delete(*args, **kwargs)
+        
 
     def __str__(self) -> str:
         return f"Roll No. {self.rollNo} -> {self.studentFirstName} {self.studentMiddleName} {self.studentLastName}"

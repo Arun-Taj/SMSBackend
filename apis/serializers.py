@@ -405,6 +405,45 @@ class ObtainedMarkPostSerializer(serializers.ModelSerializer):
 
 
 
+from rest_framework import serializers
+from .models import Student, Class, School
+
+class StudentUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = [
+            'studentFirstName', 'studentMiddleName', 'studentLastName', 'gender', 'dateOfBirth',
+            'aadharNumber', 'motherTongue', 'phoneNumber', 'alternatePhoneNumber', 'classOfAdmission', 
+            'fatherFirstName', 'fatherMiddleName', 'fatherLastName', 'fatherAadharNumber', 'fatherOccupation',
+            'motherFirstName', 'motherMiddleName', 'motherLastName', 'motherAadharNumber', 'motherOccupation',
+            'guardianFirstName', 'guardianMiddleName', 'guardianLastName', 'guardianAadharNumber', 'guardianOccupation',
+            'relationWithGuardian', 'guardianPhoneNumber', 'pAddress1', 'ptownVillageCity', 'pcountry', 
+            'pstate', 'pzipCode', 'cAddress1', 'ctownVillageCity', 'ccountry', 'cstate', 'czipCode', 
+            'nationality', 'religion', 'caste', 'bloodGroup', 'personalIdentification', 'disease', 'lastAttendance', 
+            'transferCertificate', 'remarks', 'photo'  # This field will handle the image upload
+        ]
+
+    def update(self, instance, validated_data):
+        # Handle nested fields and update logic for fields
+        class_of_admission = validated_data.pop('classOfAdmission', None)
+        if class_of_admission:
+            instance.classOfAdmission = class_of_admission
+
+        # Handle updating the photo field only if it's provided
+        if 'photo' in validated_data:
+            if validated_data['photo'] is not None:
+                instance.photo = validated_data['photo']
+            else:
+                # Remove 'photo' from validated_data to avoid setting it to None
+                validated_data.pop('photo')
+
+        # Update all other fields
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+
+        instance.save()
+        return instance
+
 
 
 

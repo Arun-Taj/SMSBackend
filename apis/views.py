@@ -135,6 +135,24 @@ def promote_student(request):
 
 
 
+class UpdateStudentView(APIView):
+    def put(self, request, *args, **kwargs):
+        student_id = kwargs.get('id')
+        try:
+            student = models.Student.objects.get(id=student_id)
+        except models.Student.DoesNotExist:
+            return Response({"detail": "Student not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Serialize incoming data (including file data) for updating the student instance
+        serializer = serializers.StudentUpdateSerializer(student, data=request.data, context={'request': request})
+
+        if serializer.is_valid():
+            # Perform the update
+            serializer.save()
+            return Response({"detail": "Student updated successfully."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = models.Employee.objects.all()
     serializer_class = serializers.EmployeeSerializer

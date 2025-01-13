@@ -179,6 +179,25 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         employee = serializer.save()
         employee.complementarySubjects.set(complementary_subjects)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    
+    #for update
+    def update(self, request, *args, **kwargs):
+        data = request.data.copy()
+        try:
+            complementary_subjects = [int(subject_id) for subject_id in data['complementarySubjects'].split(",")]
+        except:
+            complementary_subjects = []
+        data.pop('complementarySubjects', None)
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=data, partial=partial)
+        if not serializer.is_valid():
+            print(serializer.errors)  # Log validation errors
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        employee = serializer.save()
+        employee.complementarySubjects.set(complementary_subjects)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 

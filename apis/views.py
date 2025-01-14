@@ -13,13 +13,14 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, Ou
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view
 
-from django.db.models import F, Value, Count, Case, When
+from django.db.models import F, Value, Count, Case, When, Sum
 
 from django.db.models.functions import Concat
 from collections import defaultdict
 from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListAPIView
+from django.db import transaction
 
 
 
@@ -1176,7 +1177,7 @@ def get_student_for_receipt(request, enr_no):
 
     try:
         student = models.Student.objects.annotate(
-            Roll_No = F('id'),
+            Roll_No = F('rollNo'),
             Student_Name = F('student_full_name'),
             Father_Name = F('father_full_name'),
             Class_Name = F('classOfAdmission__className'),
@@ -1185,13 +1186,34 @@ def get_student_for_receipt(request, enr_no):
     except models.Student.DoesNotExist:
         return Response({"message": "Student doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
 
+
+    try:
+        old_receipts = models.Receipt.objects.filter(student_id=student['id'])
+    except models.Receipt.DoesNotExist:
+        return Response({"message": "Receipt doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        if old_receipts:
+            old_fees = float(old_receipts.aggregate(sum_total=Sum('remaining_fees'))['sum_total'])
+            months_paid = [ {'id':month.id, 'name':month.name}  for receipt in old_receipts for month in receipt.months.all()]
+        else:
+            old_fees = 0
+            months_paid = []
+            
+            
+    # print(months_paid)
+
+
+    student['old_fees'] = old_fees
+    student['paid_months'] = months_paid
+
+    # print(student)
     return Response(student, status=status.HTTP_200_OK)
 
 
 
 
-
 @api_view(['POST'])
+@transaction.atomic
 def create_receipt(request):
     data = request.data
 
@@ -1205,6 +1227,22 @@ def create_receipt(request):
     
     months = data.get('months')
     data = {key: value for key, value in data.items() if key not in ['student', 'months']}
+    
+    # print(data)
+    try:
+        old_receipts = models.Receipt.objects.filter(student=student)
+    except models.Receipt.DoesNotExist:
+        return Response({"message": "Receipt doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        # print(old_receipts)
+        for receipt in old_receipts:
+            if receipt.remaining_fees > 0 and data['deposit_fees'] >= receipt.remaining_fees:
+                receipt.remaining_fees = 0
+                data['deposit_fees'] -= receipt.remaining_fees
+                receipt.save()
+        
+    
+    
     receipt = models.Receipt.objects.create(**data, student=student)
 
     for month in months:
@@ -1216,6 +1254,10 @@ def create_receipt(request):
         "receipt_no": data.get('receipt_no'),
     }
     return Response(response, status=status.HTTP_201_CREATED)
+    
+    # print(data)   
+    
+    # return Response({"message": "Receipt created successfully"}, status=status.HTTP_201_CREATED)
 
 
 
@@ -1225,16 +1267,15 @@ def create_receipt(request):
 def get_receipts(request):
 
     receipts = models.Receipt.objects.select_related('student').prefetch_related('months').annotate(
-        receiptNo = F('receipt_no'),
-        studentName = F('student__student_full_name'),
-        className = F('student__classOfAdmission__className'),
-        enrollmentId = F('student__enrollmentId'),
-        date = F('receipt_date'),
-        description = F('remarks'),
-        remainingFee = F('remaining_fees'),
-        paid = F('deposit_fees'),
-        netFees = F('net_fees'),
-
+        receiptNo=F('receipt_no'),
+        studentName=F('student__student_full_name'),
+        className=F('student__classOfAdmission__className'),
+        enrollmentId=F('student__enrollmentId'),
+        date=F('receipt_date'),
+        description=F('remarks'),
+        remainingFee=F('remaining_fees'),
+        paid=F('deposit_fees'),
+        netFees=F('net_fees'),
     ).values(
         'id',
         'receiptNo',
@@ -1246,10 +1287,21 @@ def get_receipts(request):
         'remainingFee',
         'paid',
         'netFees',
-        'remarks'
+        'remarks',
+        'months__name'
     ).order_by('-date')
 
-    return Response(list(receipts), status=status.HTTP_200_OK)
+    # Group months by receipt ID
+    receipts_dict = {}
+    for receipt in receipts:
+        receipt_id = receipt['id']
+        if receipt_id not in receipts_dict:
+            receipts_dict[receipt_id] = {**receipt, 'months': []}
+        receipts_dict[receipt_id]['months'].append(receipt['months__name'])
+
+    final_receipts = list(receipts_dict.values())
+
+    return Response(final_receipts, status=status.HTTP_200_OK)
 
 
 

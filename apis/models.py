@@ -463,8 +463,12 @@ class Receipt(models.Model):
     def get_new_receipt_no(cls, *args, **kwargs):
         date = datetime.now().strftime("%Y-%m-%d")
         serial = cls.objects.count() + 1
-        receipt_no = f"{date}{serial}".replace('-', '')
-        return f"REC-{receipt_no}"
+        receipt_no = f"REC{date}{serial}".replace('-', '')
+        # print(receipt_no)
+        while cls.objects.filter(receipt_no=receipt_no).exists():
+            serial += 1
+            receipt_no = f"REC{date}{serial}".replace('-', '')
+        return receipt_no
 
 
     def __str__(self) -> str:

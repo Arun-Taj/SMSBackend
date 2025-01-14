@@ -25,6 +25,26 @@ from django.db import transaction
 
 
 
+
+@api_view(['GET'])
+def get_school_data(request):
+
+    if not request.user.is_authenticated:
+        return Response({"message": "User is not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    try:
+        school = request.user.school
+    except models.School.DoesNotExist:
+        return Response({"message": "School not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        school_data = serializers.SchoolSerializer(school).data
+        admin_data = serializers.AdminUserSerializer(request.user).data
+        return Response({"school": school_data, "admin": admin_data}, status=status.HTTP_200_OK)
+
+
+
 class CustomTokenBlacklistView(APIView):
     def post(self, request, *args, **kwargs):
         refresh_token = request.data.get('refresh')

@@ -7,6 +7,10 @@ from rest_framework import status
 
 
 
+
+
+
+
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
@@ -34,7 +38,7 @@ class AdminUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AdminUser
-        fields = ['id', 'url','username', 'full_name', 'password','gender', 'dob','photo', 'aadhar_no', 'address', 'town_village_city', 'district', 'state', 'country', 'pincode', 'nationality', 'religion', 'passport_photo', 'phone_number', 'alt_phone_number']
+        fields = ['id','username', 'full_name', 'password','gender', 'dob','photo', 'aadhar_no', 'address', 'town_village_city', 'district', 'state', 'country', 'pincode', 'nationality', 'religion', 'passport_photo', 'phone_number', 'alt_phone_number', 'email']
 
     def create(self, validated_data):
         # Create a new user and set the password securely
@@ -102,7 +106,7 @@ class UpdateAdminUserSerializer(AdminUserSerializer):
 
 
 
-class SchoolSerializer(serializers.HyperlinkedModelSerializer):
+class SchoolSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = School
@@ -114,7 +118,7 @@ class SchoolSerializer(serializers.HyperlinkedModelSerializer):
 
 
 
-class StudentSerializer(serializers.HyperlinkedModelSerializer):
+class StudentSerializer(serializers.ModelSerializer):
     # rollNo = serializers.IntegerField(read_only=True)  # Add rollNo as a read-only field
     id = serializers.IntegerField(read_only=True)
     classOfAdmission = serializers.PrimaryKeyRelatedField(queryset=Class.objects.all())

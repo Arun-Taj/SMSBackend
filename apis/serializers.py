@@ -60,6 +60,7 @@ class AdminUserSerializer(serializers.ModelSerializer):
             passport_photo=validated_data.get('passport_photo', ''),
             phone_number=validated_data.get('phone_number', ''),
             alt_phone_number=validated_data.get('alt_phone_number', ''),
+            email=validated_data.get('email', '')
         )
         user.set_password(validated_data['password'])  # Set the password securely
         user.save()

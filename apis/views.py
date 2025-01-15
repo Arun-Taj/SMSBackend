@@ -89,6 +89,7 @@ class AdminUserViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        # print(request.data)
         user = serializer.save()  # This calls the create method in the serializer
         headers = self.get_success_headers(serializer.data)
 

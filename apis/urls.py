@@ -27,7 +27,7 @@ urlpatterns = [
 
 
     #school
-    path('school/', get_school_data, name='get_school_data'),
+    path('school_info/', get_school_data, name='get_school_data'),
 
 
 

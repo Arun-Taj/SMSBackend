@@ -116,6 +116,7 @@ class SchoolViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             # Allow anyone to create
             return [AllowAny()]
+
         return [IsAuthenticated()]  # Restrict other actions to authenticated users
     
 

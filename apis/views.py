@@ -192,15 +192,25 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             return models.Employee.objects.none()
 
     def create(self, request, *args, **kwargs):
-        print(request.data)
-        complementary_subjects = [int(subject_id) for subject_id in request.data['complementarySubjects'].split(",")]
-        request.data.pop('complementarySubjects', None)
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        try:
+            complementary_subjects = [int(subject_id) for subject_id in data['complementarySubjects'].split(",")] 
+        except:
+            complementary_subjects = []
+        finally:
+            data.pop('complementarySubjects', None)
+        
+        print(data['selectRole'], type(data['selectRole']))
+        data['selectRole'] = int(data['selectRole'])
+        serializer = self.get_serializer(data=data)
         if not serializer.is_valid():
             print(serializer.errors)  # Log validation errors
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         employee = serializer.save()
-        employee.complementarySubjects.set(complementary_subjects)
+        
+        if len(complementary_subjects) > 0:
+            employee.complementarySubjects.set(complementary_subjects)
+            
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     
@@ -208,10 +218,15 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         data = request.data.copy()
         try:
-            complementary_subjects = [int(subject_id) for subject_id in data['complementarySubjects'].split(",")]
+            complementary_subjects = [int(subject_id) for subject_id in data['complementarySubjects'].split(",")] 
         except:
             complementary_subjects = []
-        data.pop('complementarySubjects', None)
+        finally:
+            data.pop('complementarySubjects', None)
+            
+        data['selectRole'] = int(data['selectRole'])
+
+            
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=data, partial=partial)
@@ -219,7 +234,10 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             print(serializer.errors)  # Log validation errors
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         employee = serializer.save()
-        employee.complementarySubjects.set(complementary_subjects)
+        
+        if len(complementary_subjects) > 0:
+            employee.complementarySubjects.set(complementary_subjects)
+            
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

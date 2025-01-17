@@ -28,6 +28,7 @@ urlpatterns = [
 
     #school
     path('school_info/', get_school_data, name='get_school_data'),
+    path('update_school_info/', update_school_info, name='update_school_info'),
 
 
 

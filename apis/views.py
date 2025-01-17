@@ -25,6 +25,47 @@ from django.db import transaction
 
 
 
+@api_view(['POST'])
+def update_school_info(request):
+    # print(request.data) 
+    # data = request.data
+    try:
+        school = models.School.objects.get(id=request.data.get('school_id'))
+    except:
+        return Response({"message": "School not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    try:
+        admin = models.AdminUser.objects.get(id=request.data.get('admin_id'))
+    except:
+        return Response({"message": "School not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    # print(school, admin)
+    try:
+        school.school_name = request.data.get('school_name')
+        school.tag_line = request.data.get('tag_line')
+        school.address = request.data.get('address')
+        school.town_village_city = request.data.get('town_village_city')
+        school.state = request.data.get('state')
+        school.country = request.data.get('country')
+        school.pincode = request.data.get('pincode')
+        school.phone = request.data.get('phone')
+        school.school_board = request.data.get('school_board')
+        if 'photo' in request.data and request.data['photo'] != '':
+            school.photo = request.data['photo']
+        school.save()
+        
+        admin.email = request.data.get('email')
+        admin.save()
+        
+    #     # return Response({"message": "School info updated successfully"}, status=status.HTTP_200_OK)
+        return Response({"message": "School info updated successfully"}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"message": "Update Failed", "error": str(e)}, status=status.HTTP_404_NOT_FOUND)
+    
+    
+    
+
+
 
 @api_view(['GET'])
 def get_school_data(request):

@@ -83,10 +83,11 @@ class School(models.Model):
     state = models.TextField(blank=True, null=True)
     country = models.TextField(blank=True, null=True)
     pincode = models.CharField(max_length=50, blank=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
 
 
     def __str__(self) -> str:
-        return self.admin.username + " - " + self.tag_line
+        return self.admin.username + " - " + self.school_name
 
 
 class Subject(models.Model):

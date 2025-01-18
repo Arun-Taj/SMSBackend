@@ -1412,7 +1412,6 @@ def get_students_for_attendance(request, date, class_id):
 
     try:
         attendances = models.Attendance.objects.filter(date=date, student__classOfAdmission__id=class_id).annotate(
-                    rollNo = F('student_rollNo'),
                     enrollmentId = F('student__enrollmentId'),
                     name = F('student__student_full_name'),
                     fatherName = F('student__father_full_name'),
@@ -1455,7 +1454,6 @@ def get_students_for_attendance(request, date, class_id):
 
     try:    
         attendances = models.Attendance.objects.filter(date=date, student__classOfAdmission__id=class_id).annotate(
-            rollNo = F('student_id'),
             enrollmentId = F('student__enrollmentId'),
             name = F('student__student_full_name'),
             fatherName = F('student__father_full_name'),

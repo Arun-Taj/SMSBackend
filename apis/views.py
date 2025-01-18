@@ -1409,6 +1409,13 @@ def delete_receipt(request):
 def get_students_for_attendance(request, date, class_id):
     from datetime import datetime
     date = datetime.strptime(date, '%Y-%m-%d').date()
+    
+    try:
+        students = models.Student.objects.filter(classOfAdmission__id=class_id)
+    except models.Class.DoesNotExist:
+        return Response({"message": "Class doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     try:
         attendances = models.Attendance.objects.filter(date=date, student__classOfAdmission__id=class_id).annotate(
@@ -1417,8 +1424,19 @@ def get_students_for_attendance(request, date, class_id):
                     name = F('student__student_full_name'),
                     fatherName = F('student__father_full_name'),
                     gender = F('student__gender'),
-
-                ).values(
+        )
+        for student in students:
+            if not attendances.filter(student=student).exists():
+                try:
+                    models.Attendance.objects.create(
+                        student=student,
+                        date=date,
+                        status=''
+                    )
+                except Exception as e:
+                    return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        attendances = attendances.values(
                     'id',
                     'rollNo',
                     'enrollmentId',
@@ -1426,7 +1444,9 @@ def get_students_for_attendance(request, date, class_id):
                     'fatherName',
                     'gender',
                     'status'
-                )    
+                )   
+        
+                 
     except models.Attendance.DoesNotExist:
         return Response({"message": "Attendance doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1434,12 +1454,7 @@ def get_students_for_attendance(request, date, class_id):
         return Response(list(attendances), status=status.HTTP_200_OK)
     
 
-    try:
-        students = models.Student.objects.filter(classOfAdmission__id=class_id)
-    except models.Class.DoesNotExist:
-        return Response({"message": "Class doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
-    except Exception as e:
-        return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
 
     for student in students:
         try:

@@ -21,6 +21,7 @@ from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListAPIView
 from django.db import transaction
+from django.db import IntegrityError
 
 
 
@@ -296,6 +297,25 @@ class ClassViewSet(viewsets.ModelViewSet):
         else:
             # raise PermissionError('User is not authenticated')
             return models.Class.objects.none()
+    
+    def create(self, request, *args, **kwargs):
+        # Customizing serializer initialization or request processing
+        data = request.data
+        # data['school_id'] = request.user.school.id  # Example of adding data from the request
+        serializer = self.get_serializer(data=data)
+        try:
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+        except IntegrityError :
+            return Response({"message": "Class already exists."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Call perform_create to actually save the data
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    
+    
+
+    
         
         
 

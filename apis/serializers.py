@@ -202,6 +202,10 @@ class ClassSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['school'] = self.context['request'].user.school  
         return super().create(validated_data)
+    
+    def validate(self, attrs):
+        attrs['school'] = self.context['request'].user.school
+        return super().validate(attrs)
 
 
 

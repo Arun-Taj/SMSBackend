@@ -1412,6 +1412,7 @@ def get_students_for_attendance(request, date, class_id):
 
     try:
         attendances = models.Attendance.objects.filter(date=date, student__classOfAdmission__id=class_id).annotate(
+                    rollNo = F('student__rollNo'),
                     enrollmentId = F('student__enrollmentId'),
                     name = F('student__student_full_name'),
                     fatherName = F('student__father_full_name'),
@@ -1454,6 +1455,7 @@ def get_students_for_attendance(request, date, class_id):
 
     try:    
         attendances = models.Attendance.objects.filter(date=date, student__classOfAdmission__id=class_id).annotate(
+            rollNo = F('student__rollNo'),
             enrollmentId = F('student__enrollmentId'),
             name = F('student__student_full_name'),
             fatherName = F('student__father_full_name'),
@@ -1501,6 +1503,7 @@ def get_class_attendance_by_month(request, year, month, class_id):
     
     try:
         attendances = models.Attendance.objects.filter(student__classOfAdmission__id=class_id, date__year=year, date__month=month).annotate(
+            rollNo = F('student__rollNo'),
             name = F('student__student_full_name'),
             className = F('student__classOfAdmission__className'),
         ).values(
@@ -1563,6 +1566,7 @@ def get_class_attendance_by_month_search_term(request, year, month, search_type,
             return Response({"message": "Invalid search type"}, status=status.HTTP_400_BAD_REQUEST)
         
         attendances = attendances.annotate(
+                rollNo = F('student__rollNo'),
                 name = F('student__student_full_name'),
                 className = F('student__classOfAdmission__className'),
                 ).values(

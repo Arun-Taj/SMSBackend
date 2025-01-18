@@ -1790,6 +1790,9 @@ def get_employee_attendance_by_month_search_term(request, year, month, search_ty
     
     if search_type == 'name':
         filters['employee__employee_full_name__icontains'] = search_term
+        filters['employee__employee_full_name__icontains'] = search_term.split()[0]
+        filters['employee__employee_full_name__icontains'] = search_term.split()[1]
+        # print(search_term)
     elif search_type == 'empId':
         filters['employee__employeeId'] = search_term
     else:
@@ -1808,6 +1811,7 @@ def get_employee_attendance_by_month_search_term(request, year, month, search_ty
             'status',
             'date',
         ).order_by('date')
+        # print(attendances)
     except models.EmployeeAttendance.DoesNotExist:
         return Response({"message": "Attendance doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
 

@@ -11,7 +11,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenBlacklistView
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 
 from django.db.models import F, Value, Count, Case, When, Sum
 
@@ -24,6 +24,12 @@ from django.db import transaction
 from django.db import IntegrityError
 
 
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def forgot_password(request):
+    print(request.data)
+    return Response({"message": "Password reset link sent to your email"}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])

@@ -29,6 +29,7 @@ urlpatterns = [
     #account
     path('account/details/', get_account_data, name='get_account_data'),
     path('account/update/', update_account_data, name='update_account_data'),
+    path('account/forgot_password/', forgot_password, name='forgot_password'),
 
 
     #school

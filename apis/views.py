@@ -27,6 +27,8 @@ from .utils import reconfigure_rollNo
 
 
 
+
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def forgot_password(request):
@@ -396,10 +398,6 @@ class ClassViewSet(viewsets.ModelViewSet):
     
     
 
-    
-        
-        
-
 
 
 
@@ -553,7 +551,7 @@ def get_subjects_for_config(request):
 
 @api_view(['GET'])
 def get_teachers_for_config(request):
-    teachers = models.Employee.objects.filter(school=request.user.school)
+    teachers = models.Employee.objects.select_related('selectRole').filter(school=request.user.school, selectRole__name__iexact='Teacher')
     serializer = serializers.SimpleEmployeeSerializer(teachers, many=True)
 
     # Rename 'full_name' to 'name' in the serialized data

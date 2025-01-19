@@ -8,6 +8,10 @@ admin.site.register(School)
 admin.site.register(Student)
 admin.site.register(Employee)
 admin.site.register(Class)
+# @admin.register(Class)
+# class ClassAdmin(admin.ModelAdmin):
+#     list_display = ['id','className']
+
 admin.site.register(Subject)
 admin.site.register(ClassSubject)
 admin.site.register(ChartOfAccount)

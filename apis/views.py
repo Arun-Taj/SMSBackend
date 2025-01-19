@@ -635,10 +635,23 @@ def get_classes_and_subjects(request):
 @api_view(['POST'])
 def update_class_subjects(request):
     
-    for item in request.data:
-        class_subject = models.ClassSubject.objects.get(id=item['class_subject_id'])
-        class_subject.subject = models.Subject.objects.get(id=item['subjectId'])
-        class_subject.subject_teacher = models.Employee.objects.get(id=item['teacherId'])
+    # print(request.data)
+    class_id = request.data['class_id']
+    updated_subjects = request.data['subjects']
+    updated_subjects_ids = [value for subject in updated_subjects for key,value in subject.items() if key=="class_subject_id"]
+    _class = models.Class.objects.get(id=class_id)
+    subjects = models.ClassSubject.objects.filter(class_name=_class)
+    
+    for subject in subjects:
+        if subject.id not in updated_subjects_ids:
+            # print("delete", subject)
+            subject.delete()
+            
+                        
+    for subject in updated_subjects:
+        class_subject = models.ClassSubject.objects.get(id=subject['class_subject_id'])
+        class_subject.subject = models.Subject.objects.get(id=subject['subjectId'])
+        class_subject.subject_teacher = models.Employee.objects.get(id=subject['teacherId'])
         class_subject.save()
 
     return Response({"message": "Class subjects updated successfully"},status=status.HTTP_200_OK)

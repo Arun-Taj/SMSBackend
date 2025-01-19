@@ -22,6 +22,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListAPIView
 from django.db import transaction
 from django.db import IntegrityError
+from .utils import reconfigure_rollNo
+
 
 
 
@@ -231,6 +233,12 @@ class StudentViewSet(viewsets.ModelViewSet):
             return models.Student.objects.none()
 
         return super().get_queryset().filter(school=self.request.user.school).order_by('studentFirstName')
+    
+    
+    def perform_create(self, serializer):
+        student = serializer.save()  # The saved Student instance will be returned
+        reconfigure_rollNo(student.classOfAdmission)
+        
     
 
 

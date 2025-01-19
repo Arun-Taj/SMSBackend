@@ -4,7 +4,7 @@ from PIL import Image
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.response import Response
 from rest_framework import status
-
+from .utils import reconfigure_rollNo
 
 
 
@@ -139,19 +139,31 @@ class StudentSerializer(serializers.ModelSerializer):
         return representation
 
 
+    def create(self, validated_data):
+        # Automatically set the school based on the request context
+        request = self.context.get("request")
+        if request and hasattr(request.user, 'school'):
+            validated_data['school'] = request.user.school
+        return super().create(validated_data)  # Call the parent implementation to create the object
 
-    def save(self, *args, **kwargs):
-        request = self.context.get("request")  # Get request from context
-        print('photo' in self.validated_data, self.validated_data['photo'])
-        if request:
-            # If this is a new instance, set the school
-            if self.instance is None:
-                self.validated_data['school'] = request.user.school
-            else:
-                # Only set the school if the instance already exists
-                if not self.instance.school:
-                    self.instance.school = request.user.school
-        super().save(*args, **kwargs)
+
+    def update(self, instance, validated_data):
+        # You can include custom logic here for updates if needed
+        return super().update(instance, validated_data)
+
+
+    # def save(self, *args, **kwargs):
+    #     request = self.context.get("request")  # Get request from context
+    #     # print('photo' in self.validated_data, self.validated_data['photo'])
+    #     if request:
+    #         # If this is a new instance, set the school
+    #         if self.instance is None:
+    #             self.validated_data['school'] = request.user.school
+    #         else:
+    #             # Only set the school if the instance already exists
+    #             if not self.instance.school:
+    #                 self.instance.school = request.user.school
+    #     super().save(*args, **kwargs)
 
 
 

@@ -242,10 +242,21 @@ def promote_student(request):
             student_id = student_data['id']
             student = models.Student.objects.get(id=student_id)
             if student.classOfAdmission.id != int(student_data['classOfAdmission']):
-                print(student.student_full_name)
-                promoted_class = models.Class.objects.get(id=student_data['classOfAdmission'])
-                student.classOfAdmission = promoted_class
-                student.save(promoting=True)
+                # print(student.student_full_name)
+                previous_class = student.classOfAdmission
+                new_class = models.Class.objects.get(id=student_data['classOfAdmission'])
+                
+                student.classOfAdmission = new_class
+                student.save()
+                
+                from .utils import reconfigure_rollNo
+                reconfigure_rollNo(new_class)
+                reconfigure_rollNo(previous_class)
+                
+                
+                # promoted_class = models.Class.objects.get(id=student_data['classOfAdmission'])
+                # student.classOfAdmission = promoted_class
+                # student.save(promoting=True)
     except Exception as e:
         return Response({"message": "Failed to promote students"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     

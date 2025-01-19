@@ -5,6 +5,16 @@ from .import models
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
+
+def reconfigure_rollNo(class_name):
+    # print(class_name)
+    students = models.Student.objects.filter(classOfAdmission=class_name).order_by('studentFirstName')
+    for new_rollNo, student in enumerate(students, start=1):
+        student.rollNo = new_rollNo
+        student.save()
+
+
+
 def validate_and_set_password(user, new_password):
     # Validate the new password
     validate_password(new_password, user)

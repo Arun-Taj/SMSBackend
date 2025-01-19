@@ -263,28 +263,28 @@ class Student(models.Model):
     photo = models.ImageField(upload_to='student_photos', null=True, blank=True)
 
 
-    @classmethod
-    def get_new_roll_no(cls, class_id):
-        try:
-            last_roll_no = cls.objects.filter(classOfAdmission_id=class_id).count()
-            return last_roll_no + 1
-        except Exception as e:
-            raise Exception(f"Failed to get new roll number: {str(e)}")
+    # @classmethod
+    # def get_new_roll_no(cls, class_id):
+    #     try:
+    #         last_roll_no = cls.objects.filter(classOfAdmission_id=class_id).count()
+    #         return last_roll_no + 1
+    #     except Exception as e:
+    #         raise Exception(f"Failed to get new roll number: {str(e)}")
 
 
-    def update_roll_no(self):
-        try:
-            self.rollNo = Student.get_new_roll_no(self.classOfAdmission_id)
-        except Exception as e:
-            self.rollNo = None
+    # def update_roll_no(self):
+    #     try:
+    #         self.rollNo = Student.get_new_roll_no(self.classOfAdmission_id)
+    #     except Exception as e:
+    #         self.rollNo = None
 
     def save(self, *args, **kwargs):
-        if self.rollNo == None:
-            self.update_roll_no()
+        # if self.rollNo == None:
+        #     self.update_roll_no()
         
-        elif 'promoting' in kwargs.keys():
-            self.update_roll_no()
-            kwargs.pop('promoting')
+        # elif 'promoting' in kwargs.keys():
+        #     self.update_roll_no()
+        #     kwargs.pop('promoting')
 
 
         if not self.enrollmentId:

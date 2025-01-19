@@ -27,6 +27,53 @@ from django.db import IntegrityError
 
 
 @api_view(['POST'])
+def update_account_data(request):
+    
+    try:
+        admin_user1 = request.user
+        admin_user2 = models.AdminUser.objects.get(id=request.data.get('id'))
+        admin_user1 == admin_user2
+        admin_user = admin_user2
+    except Exception as e:
+        return Response({"message": "Failed to update account data, Please contact administrator"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        admin_user.username = request.data.get('username')
+        admin_user.email = request.data.get('email')
+        admin_user.phone_number = request.data.get('phone')
+        
+        new_password = request.data.get('password')
+        from .utils import validate_and_set_password
+        
+        try:
+            admin_user = validate_and_set_password(admin_user, new_password)
+        except Exception as e:
+            return Response({"errors": e}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            admin_user.save()
+    
+    
+    return Response({"message": "Account data updated successfully"}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_account_data(request):
+    try:
+        admin_user = request.user
+    except:
+        return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    account_details = {
+        'id': admin_user.id,
+        'username': admin_user.username,
+        'email': admin_user.email,
+        'phone': admin_user.phone_number
+    }
+    
+    return Response(account_details, status=status.HTTP_200_OK)
+
+
+
+@api_view(['POST'])
 def update_school_info(request):
     # print(request.data) 
     # data = request.data

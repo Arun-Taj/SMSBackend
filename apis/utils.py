@@ -2,6 +2,20 @@ from django.db.models import F
 from rest_framework import status
 from rest_framework.response import Response
 from .import models
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+
+def validate_and_set_password(user, new_password):
+    # Validate the new password
+    validate_password(new_password, user)
+
+    # If validation passes, set the new password
+    user.set_password(new_password)
+
+    return user
+
+
+
 def get_subjects_for_exam(request, exam_id, class_id):
     try:
         class_name = models.Class.objects.get(id=class_id)

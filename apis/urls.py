@@ -26,6 +26,11 @@ urlpatterns = [
     path('logout/', CustomTokenBlacklistView.as_view(), name='token_blacklist'),
 
 
+    #account
+    path('account/details/', get_account_data, name='get_account_data'),
+    path('account/update/', update_account_data, name='update_account_data'),
+
+
     #school
     path('school_info/', get_school_data, name='get_school_data'),
     path('update_school_info/', update_school_info, name='update_school_info'),

@@ -307,11 +307,25 @@ class ClassViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
         except IntegrityError :
-            return Response({"message": "Class already exists."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Class with this name already exists."}, status=status.HTTP_400_BAD_REQUEST)
         
         # Call perform_create to actually save the data
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
+    
+    def update(self, request, *args, **kwargs):
+        # Customizing serializer initialization or request processing
+        data = request.data
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=data)
+        try:
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+        except IntegrityError :
+            return Response({"message": "Class with this name already exists."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Call perform_update to actually save the data
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     
 

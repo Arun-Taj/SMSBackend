@@ -649,7 +649,12 @@ def update_class_subjects(request):
             
                         
     for subject in updated_subjects:
-        class_subject = models.ClassSubject.objects.get(id=subject['class_subject_id'])
+        try:
+            class_subject = models.ClassSubject.objects.get(id=subject['class_subject_id'])
+        except KeyError:
+            class_subject = models.ClassSubject(class_name=_class)
+       
+            
         class_subject.subject = models.Subject.objects.get(id=subject['subjectId'])
         class_subject.subject_teacher = models.Employee.objects.get(id=subject['teacherId'])
         class_subject.save()

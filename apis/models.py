@@ -152,7 +152,7 @@ class Employee(models.Model):
     bioData = models.FileField(upload_to='documents/employees/', blank=True, null=True)
     educationDetails = models.TextField(null=True, blank=True)
     experience = models.TextField(null=True, blank=True)
-    mainSubject = models.ForeignKey(Subject, on_delete=models.SET_NULL, null=True, related_name='employees_main_subject')
+    mainSubject = models.ForeignKey(Subject, on_delete=models.SET_NULL, null=True, blank=True, related_name='employees_main_subject')
     complementarySubjects = models.ManyToManyField(Subject, related_name='employees', blank=True)
     remarks = models.TextField(null=True, blank=True)
     employeeId = models.CharField(max_length=20, unique=True, editable=False)

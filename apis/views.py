@@ -304,6 +304,10 @@ class EmployeeViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
+        
+        if data['mainSubject'] == "null":
+            data.pop('mainSubject', None)
+        
         try:
             complementary_subjects = [int(subject_id) for subject_id in data['complementarySubjects'].split(",")] 
         except:
@@ -311,7 +315,6 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         finally:
             data.pop('complementarySubjects', None)
         
-        print(data['selectRole'], type(data['selectRole']))
         data['selectRole'] = int(data['selectRole'])
         serializer = self.get_serializer(data=data)
         if not serializer.is_valid():
@@ -328,6 +331,10 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     #for update
     def update(self, request, *args, **kwargs):
         data = request.data.copy()
+        
+        if data['mainSubject'] == "null":
+            data.pop('mainSubject', None)
+        
         try:
             complementary_subjects = [int(subject_id) for subject_id in data['complementarySubjects'].split(",")] 
         except:

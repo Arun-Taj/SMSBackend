@@ -1764,7 +1764,7 @@ def get_employees_for_attendance(request, date):
     date = datetime.strptime(date, '%Y-%m-%d').date()
 
     try:
-        employees = models.Employee.objects.all()
+        employees = models.Employee.objects.filter(school=request.user.school)
     except models.Employee.DoesNotExist:
         return Response({"message": "Employee doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
@@ -1773,7 +1773,7 @@ def get_employees_for_attendance(request, date):
 
 
     try:
-        attendances = models.EmployeeAttendance.objects.filter(date=date).annotate(
+        attendances = models.EmployeeAttendance.objects.filter(date=date, employee__school=request.user.school).annotate(
                     enrollmentId = F('employee__employeeId'),
                     name = F('employee__employee_full_name'),
                     fatherName = F('employee__father_full_name'),
@@ -1810,7 +1810,6 @@ def get_employees_for_attendance(request, date):
     
 
 
-
     for employee in employees:
         try:
             models.EmployeeAttendance.objects.create(
@@ -1821,10 +1820,9 @@ def get_employees_for_attendance(request, date):
         except Exception as e:
             return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-    
 
     try:    
-        attendances = models.EmployeeAttendance.objects.filter(date=date).annotate(
+        attendances = models.EmployeeAttendance.objects.filter(date=date, employee__school=request.user.school).annotate(
                     enrollmentId = F('employee__employeeId'),
                     name = F('employee__employee_full_name'),
                     fatherName = F('employee__father_full_name'),
@@ -1841,7 +1839,6 @@ def get_employees_for_attendance(request, date):
         return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     
-
 
     return Response(list(attendances), status=status.HTTP_200_OK)
 

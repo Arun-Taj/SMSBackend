@@ -1138,7 +1138,7 @@ def get_students_for_marks_entry(request,exam_id, class_id):
         })
 
     # import pprint
-    print(list(response.values())[0]['marks'])
+    # print(list(response.values())[0]['marks'])
     final_response = list(response.values())
 
 
@@ -1280,7 +1280,7 @@ def get_student_report(request,exam_id, search_key):
         'class_name': student.classOfAdmission.className,
         'photo': student.photo.url if student.photo else ""
     }
-    obtained_marks = models.ObtainedMark.objects.filter(student=student, paper__exam=exam).annotate(
+    obtained_marks = models.ObtainedMark.objects.filter(student=student, paper__exam=exam, paper__subject__class_name=student.classOfAdmission).annotate(
         paper_name = F('paper__subject__subject__subjectName'),
         paper_full_marks = F('paper__full_marks'),
         paper_pass_marks = F('paper__pass_marks'),
@@ -1290,6 +1290,7 @@ def get_student_report(request,exam_id, search_key):
         'student_data': student_data,
         'obtained_marks': obtained_marks
     }
+    # print(response_data['obtained_marks'])
 
     return Response(response_data, status=status.HTTP_200_OK)
 

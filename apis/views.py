@@ -1278,7 +1278,8 @@ def get_student_report(request,exam_id, search_key):
         'student_name': student.student_full_name,
         'father_name': student.father_full_name,
         'class_name': student.classOfAdmission.className,
-        'photo': student.photo.url if student.photo else ""
+        'photo': student.photo.url if student.photo else "",
+        'roll_no': student.rollNo
     }
     obtained_marks = models.ObtainedMark.objects.filter(student=student, paper__exam=exam, paper__subject__class_name=student.classOfAdmission).annotate(
         paper_name = F('paper__subject__subject__subjectName'),

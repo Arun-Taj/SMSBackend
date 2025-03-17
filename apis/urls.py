@@ -100,7 +100,7 @@ urlpatterns = [
 
 
     #result
-    path('get_student_report/<int:exam_id>/<search_key>/', get_student_report, name="get_student_report"),
+    path('get_student_report/<int:exam_id>/<search_key>/<filter>/', get_student_report, name="get_student_report"),
     path('get_marks/<int:exam_id>/<int:class_id>/', get_marks, name="get_marks"),
 
 

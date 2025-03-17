@@ -1250,21 +1250,19 @@ def get_student_by_enr_no(request,exam_id, class_id, enr_no):
 
 
 @api_view(['GET'])
-def get_student_report(request,exam_id, search_key):
-
+def get_student_report(request,exam_id, search_key, filter):
     #clean search key by removing leading and trailing spaces
     search_key = search_key.strip()
+    filter = filter.strip()
     try:
-        student = models.Student.objects.get(enrollmentId=search_key) #search by enrollment id
+        if filter == 'name':
+            student = models.Student.objects.get(student_full_name__icontains=search_key) #search by full name
+        elif filter == 'enrollment_id':
+            student = models.Student.objects.get(enrollmentId=search_key) #search by enrollment id
+        elif filter == 'name_father':
+            student = models.Student.objects.get(student_father_combined_name__icontains=search_key) #search by student and father name
     except models.Student.DoesNotExist:
-        try:
-            student = models.Student.objects.filter(student_full_name__icontains=search_key).first() #search by full name
-        except models.Student.DoesNotExist:
-            try:
-                student = models.Student.objects.filter(student_father_combined_name__icontains=search_key).first() #search by student and father name
-            except models.Student.DoesNotExist:
-                return Response({"message": "Student doesn't exist"}, status=status.HTTP_400_BAD_REQUEST) 
-            
+        return Response({"message": "Student doesn't exist"}, status=status.HTTP_400_BAD_REQUEST) 
 
 
     try:

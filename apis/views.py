@@ -1090,7 +1090,11 @@ def get_students_for_marks_entry(request,exam_id, class_id):
                 
 
 
-    obtained_marks = models.ObtainedMark.objects.filter(student__classOfAdmission=class_name, paper__exam=exam).annotate(
+    obtained_marks =  models.ObtainedMark.objects.filter(
+            student__classOfAdmission=class_name,
+            paper__exam=exam,
+            paper__subject__class_name_id=class_id  # Ensure paper belongs to the current class
+        ).annotate(
         mark_id = F('id'),
         enr_no = F('student__enrollmentId'),
         student_name=Concat(
@@ -1115,7 +1119,6 @@ def get_students_for_marks_entry(request,exam_id, class_id):
 
 
     response = {}
-
     for mark in obtained_marks:
         if mark['student_id'] not in response:
             response[mark['student_id']] = {
@@ -1134,7 +1137,8 @@ def get_students_for_marks_entry(request,exam_id, class_id):
             'paper_pass_marks': mark['paper_pass_marks'],
         })
 
-    # print(list(response.values()))
+    # import pprint
+    print(list(response.values())[0]['marks'])
     final_response = list(response.values())
 
 

@@ -1170,36 +1170,36 @@ def update_marks(request):
 
 @api_view(['GET'])
 def get_student_by_enr_no(request, exam_id, enr_no):
-    # Fetch student and related data
+    # Fetch student and exam
     student = get_object_or_404(models.Student, enrollmentId=enr_no)
-    class_name = student.classOfAdmission
     exam = get_object_or_404(models.Exam, id=exam_id)
+    class_name = student.classOfAdmission
 
-    # Get all students in the same class and exam papers for this exam
-    students = models.Student.objects.filter(classOfAdmission=class_name)
-    exam_papers = models.ExamPaper.objects.filter(exam=exam)
+    # Get exam papers only for the student's class
+    exam_papers = models.ExamPaper.objects.filter(
+        exam=exam,
+        subject__class_name=class_name
+    )
 
-    # Ensure marks exist for each student-paper pair
-    student_paper_pairs = [
-        (s.id, paper.id) for s in students for paper in exam_papers
-    ]
+    # Ensure obtained marks exist for this student and their class subjects
     existing_marks = set(
         models.ObtainedMark.objects.filter(
-            student_id__in=[s.id for s in students],
-            paper_id__in=[p.id for p in exam_papers]
-        ).values_list('student_id', 'paper_id')
+            student=student,
+            paper__in=exam_papers
+        ).values_list('paper_id', flat=True)
     )
 
     new_marks = [
-        models.ObtainedMark(student_id=s_id, paper_id=p_id, marks=0)
-        for s_id, p_id in student_paper_pairs if (s_id, p_id) not in existing_marks
+        models.ObtainedMark(student=student, paper=paper, marks=0)
+        for paper in exam_papers if paper.id not in existing_marks
     ]
     if new_marks:
         models.ObtainedMark.objects.bulk_create(new_marks)
 
-    # Fetch marks for the target student with clean annotation
+    # Fetch student's marks with clean annotations
     obtained_marks = models.ObtainedMark.objects.filter(
-        student=student, paper__exam=exam
+        student=student,
+        paper__in=exam_papers
     ).annotate(
         mark_id=F('id'),
         enr_no=F('student__enrollmentId'),
@@ -1225,7 +1225,7 @@ def get_student_by_enr_no(request, exam_id, enr_no):
         'paper_id', 'paper_name', 'paper_full_marks', 'paper_pass_marks', 'marks'
     ).order_by('student_name')
 
-    # Construct response
+    # Construct final response
     student_data = {
         'student_id': student.id,
         'enr_no': student.enrollmentId,

@@ -1321,7 +1321,7 @@ def get_marks(request,exam_id, class_id):
         return Response({"message": "Exam Papers doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
 
                 
-    obtained_marks = models.ObtainedMark.objects.filter(student__classOfAdmission=class_name, paper__exam=exam).annotate(
+    obtained_marks = models.ObtainedMark.objects.filter(student__classOfAdmission=class_name, paper__exam=exam, paper__subject__class_name=class_name).annotate(
         mark_id = F('id'),
         enr_no = F('student__enrollmentId'),
         student_name=Concat(

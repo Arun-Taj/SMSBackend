@@ -1224,6 +1224,10 @@ def get_student_by_enr_no(request, exam_id, enr_no):
         'mark_id', 'enr_no', 'student_id', 'student_name', 'father_name',
         'paper_id', 'paper_name', 'paper_full_marks', 'paper_pass_marks', 'marks'
     ).order_by('student_name')
+    
+    
+    if obtained_marks.count() == 0:
+        return Response({"message": f"Class {class_name.className} is not included in {exam.name}"}, status=status.HTTP_400_BAD_REQUEST)
 
     # Construct final response
     student_data = {

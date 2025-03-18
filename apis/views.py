@@ -1169,35 +1169,40 @@ def update_marks(request):
 
 
 @api_view(['GET'])
-def get_student_by_enr_no(request,exam_id, class_id, enr_no):
-
-    class_name = get_object_or_404(models.Class, id=class_id)
-
-    try:
-        students = models.Student.objects.filter(classOfAdmission=class_name)
-    except models.Student.DoesNotExist:
-        return Response({"message": "Students doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
-
-
+def get_student_by_enr_no(request, exam_id, enr_no):
+    # Fetch student and related data
+    student = get_object_or_404(models.Student, enrollmentId=enr_no)
+    class_name = student.classOfAdmission
     exam = get_object_or_404(models.Exam, id=exam_id)
 
-    try:
-        exam_papers = models.ExamPaper.objects.filter(exam=exam)
-    except models.ExamPaper.DoesNotExist:
-        return Response({"message": "Exam Papers doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+    # Get all students in the same class and exam papers for this exam
+    students = models.Student.objects.filter(classOfAdmission=class_name)
+    exam_papers = models.ExamPaper.objects.filter(exam=exam)
 
-    for student in students:
-        for paper in exam_papers:
-            try:
-                mark = models.ObtainedMark.objects.get(student=student, paper=paper)
-            except models.ObtainedMark.DoesNotExist:
-                models.ObtainedMark.objects.create(student=student, paper=paper, marks=0)
-                
+    # Ensure marks exist for each student-paper pair
+    student_paper_pairs = [
+        (s.id, paper.id) for s in students for paper in exam_papers
+    ]
+    existing_marks = set(
+        models.ObtainedMark.objects.filter(
+            student_id__in=[s.id for s in students],
+            paper_id__in=[p.id for p in exam_papers]
+        ).values_list('student_id', 'paper_id')
+    )
 
+    new_marks = [
+        models.ObtainedMark(student_id=s_id, paper_id=p_id, marks=0)
+        for s_id, p_id in student_paper_pairs if (s_id, p_id) not in existing_marks
+    ]
+    if new_marks:
+        models.ObtainedMark.objects.bulk_create(new_marks)
 
-    obtained_marks = models.ObtainedMark.objects.filter(student__classOfAdmission=class_name, student__enrollmentId=enr_no, paper__exam=exam).annotate(
-        mark_id = F('id'),
-        enr_no = F('student__enrollmentId'),
+    # Fetch marks for the target student with clean annotation
+    obtained_marks = models.ObtainedMark.objects.filter(
+        student=student, paper__exam=exam
+    ).annotate(
+        mark_id=F('id'),
+        enr_no=F('student__enrollmentId'),
         student_name=Concat(
             F('student__studentFirstName'),
             Value(' '),
@@ -1212,38 +1217,34 @@ def get_student_by_enr_no(request,exam_id, class_id, enr_no):
             Value(' '),
             F('student__fatherLastName')
         ),
-        paper_name = F('paper__subject__subject__subjectName'),
-        paper_full_marks = F('paper__full_marks'),
-        paper_pass_marks = F('paper__pass_marks'),
+        paper_name=F('paper__subject__subject__subjectName'),
+        paper_full_marks=F('paper__full_marks'),
+        paper_pass_marks=F('paper__pass_marks'),
+    ).values(
+        'mark_id', 'enr_no', 'student_id', 'student_name', 'father_name',
+        'paper_id', 'paper_name', 'paper_full_marks', 'paper_pass_marks', 'marks'
+    ).order_by('student_name')
 
-    ).values('mark_id', 'enr_no','student_id', 'student_name', 'father_name', 'paper_id', 'paper_name','paper_full_marks','paper_pass_marks', 'marks').order_by('student_name')
-
-
-    response = {}
-
-    for mark in obtained_marks:
-        if mark['student_id'] not in response:
-            response[mark['student_id']] = {
-                'student_id':mark['student_id'],
-                'enr_no': mark['enr_no'],
-                'student_name': mark['student_name'],
-                'father_name': mark['father_name'],
-                'marks': []
+    # Construct response
+    student_data = {
+        'student_id': student.id,
+        'enr_no': student.enrollmentId,
+        'student_name': f"{student.studentFirstName} {student.studentMiddleName} {student.studentLastName}",
+        'father_name': f"{student.fatherFirstName} {student.fatherMiddleName} {student.fatherLastName}",
+        'marks': [
+            {
+                'paper_id': mark['paper_id'],
+                'paper_name': mark['paper_name'],
+                'mark_id': mark['mark_id'],
+                'marks': mark['marks'],
+                'paper_full_marks': mark['paper_full_marks'],
+                'paper_pass_marks': mark['paper_pass_marks'],
             }
-        response[mark['student_id']]['marks'].append({
-            'paper_id': mark['paper_id'],
-            'paper_name': mark['paper_name'],
-            'mark_id': mark['mark_id'],
-            'marks': mark['marks'],
-            'paper_full_marks': mark['paper_full_marks'],
-            'paper_pass_marks': mark['paper_pass_marks'],
-        })
+            for mark in obtained_marks
+        ]
+    }
 
-    # print(list(response.values()))
-    final_response = list(response.values())
-
-
-    return Response(final_response, status=status.HTTP_200_OK)
+    return Response([student_data], status=status.HTTP_200_OK)
 
 
 

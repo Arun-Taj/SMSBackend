@@ -96,7 +96,7 @@ urlpatterns = [
     #students
     path('get_students_for_marks_entry/<int:exam_id>/<int:class_id>/', get_students_for_marks_entry, name="get_students_for_marks_entry"),
     path('update_marks/', update_marks, name="update_marks"),
-    path('get_student_by_enr_no/<int:exam_id>/<int:class_id>/<enr_no>/', get_student_by_enr_no, name="get_student_by_enr_no"),
+    path('get_student_by_enr_no/<int:exam_id>/<enr_no>/', get_student_by_enr_no, name="get_student_by_enr_no"),
 
 
     #result

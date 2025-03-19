@@ -964,8 +964,7 @@ def get_exams_classes(request, exam_id):
     except models.Exam.DoesNotExist:
         return Response({"error": "Exam does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
-    classes = models.ExamPaper.objects.filter(exam=exam).annotate(class_name=F('subject__class_name__className'), class_id=F('subject__class_name_id')).values('class_name', 'class_id').distinct()
-    # print(classes)
+    classes = models.ExamPaper.objects.filter(full_marks__gt=0, exam=exam).annotate(class_name=F('subject__class_name__className'), class_id=F('subject__class_name_id')).values('class_name', 'class_id').distinct()
     return Response(classes, status=status.HTTP_200_OK)
 
 

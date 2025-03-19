@@ -1321,8 +1321,9 @@ def get_marks(request,exam_id, class_id):
         return Response({"message": "Exam Papers doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
 
                 
-    obtained_marks = models.ObtainedMark.objects.filter(student__classOfAdmission=class_name, paper__exam=exam).annotate(
+    obtained_marks = models.ObtainedMark.objects.filter(student__classOfAdmission=class_name, paper__exam=exam, paper__subject__class_name=class_name).annotate(
         mark_id = F('id'),
+        roll_no = F('student__rollNo'),
         enr_no = F('student__enrollmentId'),
         student_name=Concat(
             F('student__studentFirstName'),
@@ -1342,7 +1343,7 @@ def get_marks(request,exam_id, class_id):
         paper_full_marks = F('paper__full_marks'),
         paper_pass_marks = F('paper__pass_marks'),
 
-    ).values('mark_id', 'enr_no','student_id', 'student_name', 'father_name', 'paper_id', 'paper_name','paper_full_marks','paper_pass_marks', 'marks').order_by('student_name')
+    ).values('mark_id', 'enr_no', 'roll_no','student_id', 'student_name', 'father_name', 'paper_id', 'paper_name','paper_full_marks','paper_pass_marks', 'marks').order_by('student_name')
 
 
     response = {}
@@ -1352,6 +1353,7 @@ def get_marks(request,exam_id, class_id):
             response[mark['student_id']] = {
                 'student_id':mark['student_id'],
                 'enr_no': mark['enr_no'],
+                'roll_no': mark['roll_no'],
                 'student_name': mark['student_name'],
                 'father_name': mark['father_name'],
                 'marks': []

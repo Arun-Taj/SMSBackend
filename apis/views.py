@@ -13,7 +13,7 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, Ou
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view, permission_classes
 
-from django.db.models import F, Value, Count, Case, When, Sum
+from django.db.models import F, Value, Count, Case, When, Sum, Q
 
 from django.db.models.functions import Concat
 from collections import defaultdict
@@ -1266,6 +1266,7 @@ def get_student_report(request,exam_id, search_key, filter):
                 Q(student_full_name__istartswith=search_key) |
                 Q(student_full_name__iexact=search_key)
             ).first()  # Fetch the first matching result
+            print("name", search_key, student)
 
         elif filter == 'enrollment_id':
             student = models.Student.objects.filter(
@@ -1280,11 +1281,6 @@ def get_student_report(request,exam_id, search_key, filter):
                 Q(student_father_combined_name__istartswith=search_key) |
                 Q(student_father_combined_name__iexact=search_key)
             ).first()
-
-        if not student:
-            return Response({"message": "Student doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response({"student": student.id}, status=status.HTTP_200_OK)  # Adjust response as needed
 
     except models.Student.DoesNotExist:
         return Response({"message": "Student doesn't exist"}, status=status.HTTP_400_BAD_REQUEST) 

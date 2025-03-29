@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from .import models
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+import unicodedata
+import re
 
 
 def reconfigure_rollNo(class_name):
@@ -47,3 +49,11 @@ def get_subjects_for_exam(request, exam_id, class_id):
     ]
 
     return this_class_papers
+
+
+
+def normalize_text(text):
+    """Normalize text by removing extra spaces and applying Unicode normalization."""
+    text = unicodedata.normalize("NFKC", text)  # Normalize Unicode
+    text = re.sub(r"\s+", " ", text).strip()  # Replace multiple spaces with a single space
+    return text

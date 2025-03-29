@@ -22,7 +22,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListAPIView
 from django.db import transaction
 from django.db import IntegrityError
-from .utils import reconfigure_rollNo
+from .utils import reconfigure_rollNo, normalize_text
 
 
 
@@ -1255,18 +1255,19 @@ def get_student_by_enr_no(request, exam_id, enr_no):
 
 @api_view(['GET'])
 def get_student_report(request,exam_id, search_key, filter):
-    #clean search key by removing leading and trailing spaces
-    search_key = search_key.strip()
-    filter = filter.strip()
-    
+    # Normalize search key and filter
+    search_key = normalize_text(search_key)
+    filter = normalize_text(filter)
+
     try:
+        student = None
+
         if filter == 'name':
             student = models.Student.objects.filter(
                 Q(student_full_name__icontains=search_key) |
                 Q(student_full_name__istartswith=search_key) |
                 Q(student_full_name__iexact=search_key)
-            ).first()  # Fetch the first matching result
-            print("name", search_key, student)
+            ).first()
 
         elif filter == 'enrollment_id':
             student = models.Student.objects.filter(

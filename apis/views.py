@@ -1874,7 +1874,7 @@ def update_employee_attendance(request):
 def get_employee_attendance_by_month(request, year, month):
     
     try:
-        attendances = models.EmployeeAttendance.objects.filter(date__year=year, date__month=month).annotate(
+        attendances = models.EmployeeAttendance.objects.filter(employee__school=request.user.school, date__year=year, date__month=month).annotate(
             employeeId = F('employee__employeeId'),
             name = F('employee__employee_full_name'),
             role = F('employee__selectRole'),

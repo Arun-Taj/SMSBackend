@@ -1258,13 +1258,34 @@ def get_student_report(request,exam_id, search_key, filter):
     #clean search key by removing leading and trailing spaces
     search_key = search_key.strip()
     filter = filter.strip()
+    
     try:
         if filter == 'name':
-            student = models.Student.objects.get(student_full_name__icontains=search_key) #search by full name
+            student = models.Student.objects.filter(
+                Q(student_full_name__icontains=search_key) |
+                Q(student_full_name__istartswith=search_key) |
+                Q(student_full_name__iexact=search_key)
+            ).first()  # Fetch the first matching result
+
         elif filter == 'enrollment_id':
-            student = models.Student.objects.get(enrollmentId=search_key) #search by enrollment id
+            student = models.Student.objects.filter(
+                Q(enrollmentId__icontains=search_key) |
+                Q(enrollmentId__istartswith=search_key) |
+                Q(enrollmentId__iexact=search_key)
+            ).first()
+
         elif filter == 'name_father':
-            student = models.Student.objects.get(student_father_combined_name__icontains=search_key) #search by student and father name
+            student = models.Student.objects.filter(
+                Q(student_father_combined_name__icontains=search_key) |
+                Q(student_father_combined_name__istartswith=search_key) |
+                Q(student_father_combined_name__iexact=search_key)
+            ).first()
+
+        if not student:
+            return Response({"message": "Student doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"student": student.id}, status=status.HTTP_200_OK)  # Adjust response as needed
+
     except models.Student.DoesNotExist:
         return Response({"message": "Student doesn't exist"}, status=status.HTTP_400_BAD_REQUEST) 
 

@@ -239,7 +239,6 @@ class StudentViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         student = serializer.save()  # The saved Student instance will be returned
-        reconfigure_rollNo(student.classOfAdmission)
         
     
 
@@ -258,15 +257,29 @@ def promote_student(request):
                 student.classOfAdmission = new_class
                 student.save()
                 
-                from .utils import reconfigure_rollNo
-                reconfigure_rollNo(new_class)
-                reconfigure_rollNo(previous_class)
+                # from .utils import reconfigure_rollNo
+                # reconfigure_rollNo(new_class)
+                # reconfigure_rollNo(previous_class)
           
     except Exception as e:
         return Response({"message": "Failed to promote students"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     return Response({"message": "Students promoted successfully"}, status=status.HTTP_200_OK)
 
+
+
+@api_view(["POST"])
+def configure_rollNo(request):
+    try:
+        student_id = request.data.get('studentID')
+        new_rollNo = request.data.get('rollNo')
+        student = models.Student.objects.get(id=student_id)
+        student.rollNo = new_rollNo
+        student.save()
+    except Exception as e:
+        return Response({"message": "Failed to reconfigure roll numbers"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    return Response({"message": "Roll numbers reconfigured successfully"}, status=status.HTTP_200_OK)
 
 
 class UpdateStudentView(APIView):

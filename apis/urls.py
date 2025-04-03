@@ -45,6 +45,7 @@ urlpatterns = [
     #students
     path('students/promote/', promote_student, name='promote_student'),
     path('students/<int:id>/update/', UpdateStudentView.as_view(), name='update_student'),
+    path('students/roll_no/update/', configure_rollNo, name='configure_rollNo'),
     
     
     

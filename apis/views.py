@@ -1295,6 +1295,12 @@ def get_student_report(request,exam_id, search_key, filter):
                 Q(student_father_combined_name__istartswith=search_key) |
                 Q(student_father_combined_name__iexact=search_key)
             ).first()
+        else:
+            student = models.Student.objects.filter(
+                Q(enrollmentId__icontains=search_key) |
+                Q(enrollmentId__istartswith=search_key) |
+                Q(enrollmentId__iexact=search_key)
+            ).first()
 
     except models.Student.DoesNotExist:
         return Response({"message": "Student doesn't exist"}, status=status.HTTP_400_BAD_REQUEST) 
